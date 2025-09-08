@@ -4,6 +4,8 @@ from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, RobustScaler
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
+from .utils import save_model_with_metadata
+
 
 def model_if(
     train_df: pd.DataFrame,
@@ -30,6 +32,15 @@ def model_if(
     test_labels = iso_forest.predict(test_if)
     test_if["isFraud"] = (test_labels == -1).astype(int)
 
+    save_model_with_metadata(
+        model=iso_forest,
+        model_name="Isolation Forest",
+        train_labels=train_if["isFraud"],
+        test_labels=test_if["isFraud"],
+        cat_features=cat_features,
+        params={"contamination": contamination, "random_state": random_state},
+    )
+
     return train_if, test_if
 
 
@@ -47,7 +58,7 @@ def model_lof(
     train_lof = train_df.copy()
     test_lof = test_df.copy()
 
-    ohe = OneHotEncoder(handle_unknown="ignore", sparse=False)
+    ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
     cat_encoded_train = ohe.fit_transform(train_lof[cat_features])
     cat_encoded_train_df = pd.DataFrame(cat_encoded_train, 
                                         columns=ohe.get_feature_names_out(cat_features), 
@@ -73,5 +84,15 @@ def model_lof(
 
     train_lof_encoded["isFraud"] = (train_labels == -1).astype(int)
     test_lof_encoded["isFraud"] = (test_labels == -1).astype(int)
+
+    save_model_with_metadata(
+        model=lof,
+        model_name="Local Outlier Factor",
+        train_labels=train_lof_encoded["isFraud"],
+        test_labels=test_lof_encoded["isFraud"],
+        cat_features=cat_features,
+        num_features=num_features,
+        params={"contamination": contamination},
+    )
 
     return train_lof_encoded, test_lof_encoded
