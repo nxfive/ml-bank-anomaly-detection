@@ -3,6 +3,9 @@ import pandas as pd
 
 
 def feature_extraction(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Extract basic datetime features from DataFrame index.
+    """
     df["Year"] = df.index.year
     df["Month"] = df.index.month
     df["Day"] = df.index.day
@@ -13,23 +16,36 @@ def feature_extraction(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def feature_transformation(df: pd.DataFrame) -> pd.DataFrame:
-    df["month_sin"] = np.sin(2 * np.pi * df["Month"]/12)
-    df["month_cos"] = np.cos(2 * np.pi * df["Month"]/12)
-    df["weekday_sin"] = np.sin(2 * np.pi * df["Weekday"]/7)
-    df["weekday_cos"] = np.cos(2 * np.pi * df["Weekday"]/7)
-    df["day_sin"] = np.sin(2 * np.pi * df["Day"]/31)
-    df["day_cos"] = np.sin(2 * np.pi * df["Day"]/31)
+    """
+    Apply cyclical transformations to month, weekday, and day features.
+    """
+    df["month_sin"] = np.sin(2 * np.pi * df["Month"] / 12)
+    df["month_cos"] = np.cos(2 * np.pi * df["Month"] / 12)
+    df["weekday_sin"] = np.sin(2 * np.pi * df["Weekday"] / 7)
+    df["weekday_cos"] = np.cos(2 * np.pi * df["Weekday"] / 7)
+    df["day_sin"] = np.sin(2 * np.pi * df["Day"] / 31)
+    df["day_cos"] = np.sin(2 * np.pi * df["Day"] / 31)
 
     return df
 
 
 def feature_without_data_leakage_risk(df: pd.DataFrame) -> pd.DataFrame:
-    df["exceeds_75_percent_balance"] = df["TransactionAmount"] >= 0.75 * (df["TransactionAmount"] + df["AccountBalance"]).astype(int)
+    """
+    Create feature that avoids potential data leakage.
+    """
+    df["exceeds_75_percent_balance"] = df["TransactionAmount"] >= 0.75 * (
+        df["TransactionAmount"] + df["AccountBalance"]
+    ).astype(int)
 
-    return df 
+    return df
 
 
-def data_splitting(df: pd.DataFrame, test_ratio=0.1) -> tuple[pd.DataFrame, pd.DataFrame]:
+def data_splitting(
+    df: pd.DataFrame, test_ratio=0.1
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Split DataFrame into train and test sets based on test_ratio.
+    """
     n = len(df)
     test_size = int(n * test_ratio)
 
