@@ -7,7 +7,7 @@ def read_data() -> pd.DataFrame:
     Load raw bank transactions CSV into a pandas DataFrame.
     """
     PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    csv_path = os.path.join(PROJECT_ROOT, "data", "raw", "bank_transactions_data_2.csv")
+    csv_path = os.path.join(PROJECT_ROOT, "data", "raw", "bank_transactions_data.csv")
     df = pd.read_csv(csv_path)
 
     return df
