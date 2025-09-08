@@ -26,7 +26,7 @@ num_features:
   - is_not_most_frequent_merchant
 
 
-not_useful_features:
+not_usefull_features:
   - TransactionID
   - AccountID
   - DeviceID
@@ -34,7 +34,6 @@ not_useful_features:
   - IP Address
   - Location
   - PreviousTransactionDate
-  - year_month
   - Month
   - Day
   - Weekday
@@ -45,9 +44,10 @@ not_useful_features:
 
 
 isolation_forest:
+  preprocess_num_features: False
   contamination: 0.05
   random_state: 42
 
 local_outlier_factor:
+  preprocess_num_features: True
   contamination: 0.05
-  random_state: 42
