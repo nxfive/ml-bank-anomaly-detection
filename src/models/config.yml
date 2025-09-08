@@ -1,0 +1,53 @@
+cat_features:
+  - TransactionType
+  - Channel
+  - CustomerOccupation
+
+num_features:
+  - TransactionAmount
+  - CustomerAge
+  - TransactionDuration
+  - LoginAttempts
+  - AccountBalance
+  - Year
+  - Hour
+  - month_sin
+  - month_cos
+  - weekday_sin
+  - weekday_cos
+  - day_sin
+  - day_cos
+  - time_since_last_transaction
+  - rolling_mean_amount
+  - rolling_mean_duration
+  - is_not_most_frequent_ip
+  - is_not_most_frequent_location
+  - is_not_most_frequent_device
+  - is_not_most_frequent_merchant
+
+
+not_useful_features:
+  - TransactionID
+  - AccountID
+  - DeviceID
+  - MerchantID
+  - IP Address
+  - Location
+  - PreviousTransactionDate
+  - year_month
+  - Month
+  - Day
+  - Weekday
+  - most_frequent_ip
+  - most_frequent_location
+  - most_frequent_device
+  - most_frequent_merchant
+
+
+isolation_forest:
+  contamination: 0.05
+  random_state: 42
+
+local_outlier_factor:
+  contamination: 0.05
+  random_state: 42
