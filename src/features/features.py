@@ -33,9 +33,9 @@ def feature_without_data_leakage_risk(df: pd.DataFrame) -> pd.DataFrame:
     """
     Create feature that avoids potential data leakage.
     """
-    df["exceeds_75_percent_balance"] = df["TransactionAmount"] >= 0.75 * (
+    df["exceeds_75_percent_balance"] = (df["TransactionAmount"] >= 0.75 * (
         df["TransactionAmount"] + df["AccountBalance"]
-    ).astype(int)
+    )).astype(int)
 
     return df
 
