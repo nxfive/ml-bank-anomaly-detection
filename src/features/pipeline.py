@@ -12,7 +12,7 @@ from .features import (
     feature_without_data_leakage_risk,
     data_splitting,
 )
-from utils.logger import setup_logging, get_logger
+from src.utils.logger import setup_logging, get_logger
 
 setup_logging()
 logger = get_logger(name="features")
