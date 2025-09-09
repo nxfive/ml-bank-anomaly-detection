@@ -3,7 +3,6 @@ from src.models.pipeline import model_mapper, run_pipeline
 
 
 def test_run_features_pipeline(indexed_df, config_file):
-    
     train_df, test_df = run_features_pipeline(indexed_df)
 
     assert len(train_df.columns) > len(indexed_df.columns)
