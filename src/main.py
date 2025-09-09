@@ -1,8 +1,8 @@
-from data.data import read_data, data_transform
-from features.pipeline import run_features_pipeline
-from models.pipeline import run_if_pipeline, run_lof_pipeline
-from utils.utils import save_data
-from utils.logger import setup_logging, get_logger
+from src.data.data import read_data, data_transform
+from src.features.pipeline import run_features_pipeline
+from src.models.pipeline import run_if_pipeline, run_lof_pipeline
+from src.utils.utils import save_data
+from src.utils.logger import setup_logging, get_logger
 
 import pandas as pd
 import logging
