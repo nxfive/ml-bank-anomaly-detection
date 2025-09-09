@@ -76,10 +76,12 @@ def add_time_since_last_transaction(df: pd.DataFrame) -> pd.DataFrame:
     """
     Measures time difference from previous transaction per AccountID.
     """
-    df["time_since_last_transaction"] = (
+    ts = (
         df.groupby("AccountID")
-        .apply(lambda g: g.index.to_series().diff().dt.total_seconds())
-        .reset_index(level=0, drop=True)
+          .apply(lambda g: g.index.to_series().diff().dt.total_seconds(), include_groups=False)
+          .reset_index(level=0, drop=True)  
     ).fillna(0)
 
+    df["time_since_last_transaction"] = ts
+    
     return df
