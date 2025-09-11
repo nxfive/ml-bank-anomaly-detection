@@ -1,14 +1,16 @@
-import pandas as pd
 import os
+
+import pandas as pd
+from src.utils.paths import RAW_DATA_DIR
 
 
 def read_data() -> pd.DataFrame:
     """
     Load raw bank transactions CSV into a pandas DataFrame.
     """
-    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    csv_path = os.path.join(PROJECT_ROOT, "data", "raw", "bank_transactions_data.csv")
+    csv_path = os.path.join(RAW_DATA_DIR, "bank_transactions_data.csv")
     df = pd.read_csv(csv_path)
+    df.rename(columns={"IP Address": "IPAddress"}, inplace=True)
 
     return df
 
