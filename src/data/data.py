@@ -19,6 +19,7 @@ def data_transform(df: pd.DataFrame) -> pd.DataFrame:
     """
     Convert date columns to datetime and set index to TransactionDate.
     """
+    df = df.copy()
     df["TransactionDate"] = pd.to_datetime(df["TransactionDate"])
     df["PreviousTransactionDate"] = pd.to_datetime(df["PreviousTransactionDate"])
     df = df.set_index("TransactionDate").sort_index()
