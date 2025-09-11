@@ -19,19 +19,20 @@ def model_if(
     Fit Isolation Forest model on training data and predict anomaly for train and test sets.
     Returns train_df and test_df with 'isFraud' column.
     """
-    train_if = train_df.copy()
-    test_if = test_df.copy()
+    train_df, test_df = train_df.copy(), test_df.copy()
 
+    # scale numeric features
     orde = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1)
-    train_if[cat_features] = orde.fit_transform(train_if[cat_features])
-    test_if[cat_features] = orde.transform(test_if[cat_features])
+    train_df[cat_features] = orde.fit_transform(train_df[cat_features])
+    test_df[cat_features] = orde.transform(test_df[cat_features])
 
+    # fit and predict
     iso_forest = IsolationForest(contamination=contamination, random_state=random_state)
-    train_labels = iso_forest.fit_predict(train_if)
-    train_if["isFraud"] = (train_labels == -1).astype(int)
+    train_preds = iso_forest.fit_predict(train_df)
+    test_preds = iso_forest.predict(test_df)
 
-    test_labels = iso_forest.predict(test_if)
-    test_if["isFraud"] = (test_labels == -1).astype(int)
+    train_df["isFraud"] = (train_preds == -1).astype(int)
+    test_df["isFraud"] = (test_preds == -1).astype(int)
 
     save_objects(
         ordinal_encoder=orde
@@ -40,13 +41,13 @@ def model_if(
     save_model_with_metadata(
         model=iso_forest,
         model_name="Isolation Forest",
-        train_labels=train_if["isFraud"],
-        test_labels=test_if["isFraud"],
+        train_preds=train_df["isFraud"],
+        test_preds=test_df["isFraud"],
         cat_features=cat_features,
         params={"contamination": contamination, "random_state": random_state},
     )
 
-    return train_if, test_if
+    return train_df, test_df
 
 
 def model_lof(
@@ -60,35 +61,38 @@ def model_lof(
     Fit LOF model on training data and predict anomaly for train and test sets.
     Returns train_df and test_df with 'isFraud' column.
     """
-    train_lof = train_df.copy()
-    test_lof = test_df.copy()
+    train_df, test_df = train_df.copy(), test_df.copy()
 
+    # encode categorical features
     ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
-    cat_encoded_train = ohe.fit_transform(train_lof[cat_features])
-    cat_encoded_train_df = pd.DataFrame(cat_encoded_train, 
-                                        columns=ohe.get_feature_names_out(cat_features), 
-                                        index=train_lof.index)
-    train_lof_dropped = train_lof.drop(columns=cat_features)
-    train_lof_encoded = pd.concat([train_lof_dropped, cat_encoded_train_df], axis=1)
 
-    cat_encoded_test = ohe.transform(test_lof[cat_features])
-    cat_encoded_test_df = pd.DataFrame(cat_encoded_test,
-                                       columns=ohe.get_feature_names_out(cat_features),
-                                       index=test_lof.index)
-    test_lof_dropped = test_lof.drop(columns=cat_features)
-    test_lof_encoded = pd.concat([test_lof_dropped, cat_encoded_test_df], axis=1)
+    train_cat = pd.DataFrame(
+        ohe.fit_transform(train_df[cat_features]),
+        columns=ohe.get_feature_names_out(cat_features),
+        index=train_df.index,
+    )
+    test_cat = pd.DataFrame(
+        ohe.transform(test_df[cat_features]),
+        columns=ohe.get_feature_names_out(cat_features),
+        index=test_df.index,
+    )
 
+    train_encoded = pd.concat([train_df.drop(columns=cat_features), train_cat], axis=1)
+    test_encoded = pd.concat([test_df.drop(columns=cat_features), test_cat], axis=1)
+
+    # scale numeric features
     rbs = RobustScaler()
-    train_lof_encoded[num_features] = rbs.fit_transform(train_lof_encoded[num_features])
-    test_lof_encoded[num_features] = rbs.transform(test_lof_encoded[num_features])
+    train_encoded[num_features] = rbs.fit_transform(train_encoded[num_features])
+    test_encoded[num_features] = rbs.transform(test_encoded[num_features])
 
+    # fit and predict
     lof = LocalOutlierFactor(contamination=contamination, novelty=True)
-    lof.fit(train_lof_encoded)
-    train_labels = lof.predict(train_lof_encoded)
-    test_labels = lof.predict(test_lof_encoded)
+    lof.fit(train_encoded)
+    train_preds = lof.predict(train_encoded)
+    test_preds = lof.predict(test_encoded)
 
-    train_lof_encoded["isFraud"] = (train_labels == -1).astype(int)
-    test_lof_encoded["isFraud"] = (test_labels == -1).astype(int)
+    train_encoded["isFraud"] = (train_preds == -1).astype(int)
+    test_encoded["isFraud"] = (test_preds == -1).astype(int)
 
     save_objects(
         one_hot_encoder=ohe,
@@ -98,11 +102,11 @@ def model_lof(
     save_model_with_metadata(
         model=lof,
         model_name="Local Outlier Factor",
-        train_labels=train_lof_encoded["isFraud"],
-        test_labels=test_lof_encoded["isFraud"],
+        train_preds=train_encoded["isFraud"],
+        test_preds=test_encoded["isFraud"],
         cat_features=cat_features,
         num_features=num_features,
         params={"contamination": contamination},
     )
 
-    return train_lof_encoded, test_lof_encoded
+    return train_encoded, test_encoded
