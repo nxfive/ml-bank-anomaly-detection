@@ -6,6 +6,7 @@ def add_rolling_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adds rolling mean features for TransactionAmount and TransactionDuration per AccountID.
     """
+    df = df.copy()
     df["rolling_mean_amount"] = (
         df.groupby("AccountID")["TransactionAmount"]
         .transform(lambda x: x.shift().rolling(window=2, min_periods=1).mean())
@@ -25,6 +26,7 @@ def add_group_based_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adds per-account most frequent categorical values for IP, Location, Device and Merchant.
     """
+    df = df.copy()
     agg = df.groupby("AccountID").agg(
         most_frequent_ip=(
             "IPAddress",
@@ -53,6 +55,7 @@ def add_unusual_usage_features(df: pd.DataFrame) -> pd.DataFrame:
     Creates boolean features indicating if current transaction deviates from most
     frequent account behavior.
     """
+    df = df.copy()
     df["is_not_most_frequent_ip"] = (
         df["IPAddress"] != df["most_frequent_ip"]
     ).astype(int)
