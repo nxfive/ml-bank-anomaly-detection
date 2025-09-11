@@ -5,6 +5,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
 from .utils import save_model_with_metadata
+from src.utils.utils import save_objects
 
 
 def model_if(
@@ -31,6 +32,10 @@ def model_if(
 
     test_labels = iso_forest.predict(test_if)
     test_if["isFraud"] = (test_labels == -1).astype(int)
+
+    save_objects(
+        ordinal_encoder=orde
+    )
 
     save_model_with_metadata(
         model=iso_forest,
@@ -84,6 +89,11 @@ def model_lof(
 
     train_lof_encoded["isFraud"] = (train_labels == -1).astype(int)
     test_lof_encoded["isFraud"] = (test_labels == -1).astype(int)
+
+    save_objects(
+        one_hot_encoder=ohe,
+        robust_scaler=rbs
+    )
 
     save_model_with_metadata(
         model=lof,
