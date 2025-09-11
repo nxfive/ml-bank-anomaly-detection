@@ -27,7 +27,7 @@ def add_group_based_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     agg = df.groupby("AccountID").agg(
         most_frequent_ip=(
-            "IP Address",
+            "IPAddress",
             lambda x: x.mode().iloc[0] if not x.mode().empty else np.nan,
         ),
         most_frequent_location=(
@@ -54,7 +54,7 @@ def add_unusual_usage_features(df: pd.DataFrame) -> pd.DataFrame:
     frequent account behavior.
     """
     df["is_not_most_frequent_ip"] = (
-        df["IP Address"] != df["most_frequent_ip"]
+        df["IPAddress"] != df["most_frequent_ip"]
     ).astype(int)
 
     df["is_not_most_frequent_location"] = (
@@ -76,12 +76,16 @@ def add_time_since_last_transaction(df: pd.DataFrame) -> pd.DataFrame:
     """
     Measures time difference from previous transaction per AccountID.
     """
-    ts = (
-        df.groupby("AccountID")
-          .apply(lambda g: g.index.to_series().diff().dt.total_seconds(), include_groups=False)
-          .reset_index(level=0, drop=True)  
-    ).fillna(0)
+    df = df.copy()
+    df = df.sort_values(by=["AccountID"])
 
-    df["time_since_last_transaction"] = ts
-    
+    ts_list = []
+    for _, group in df.groupby("AccountID"):
+        diff_seconds = group.index.to_series().diff().dt.total_seconds()
+        diff_seconds.iloc[0] = 0
+        ts_list.append(diff_seconds)
+
+    ts = pd.concat(ts_list)
+    df["time_since_last_transaction"] = ts.loc[df.index]
+
     return df
