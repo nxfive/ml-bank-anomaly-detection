@@ -31,7 +31,7 @@ not_usefull_features:
   - AccountID
   - DeviceID
   - MerchantID
-  - IP Address
+  - IPAddress
   - Location
   - PreviousTransactionDate
   - Month
