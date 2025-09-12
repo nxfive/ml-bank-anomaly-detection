@@ -33,7 +33,7 @@ def splitted_df(indexed_df):
 def df_with_cat_features():
     return pd.DataFrame({
         "AccountID": [1, 1, 1, 2, 2, 3],
-        "IP Address": ["10.0.0.1", "10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4", "10.0.0.5"],
+        "IPAddress": ["10.0.0.1", "10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4", "10.0.0.5"],
         "Location": ["NY", "NY", "LA", "LA", "SF", "LA"],
         "DeviceID": ["dev1", "dev1", "dev2", "dev3", "dev4", "dev5"],
         "MerchantID": ["m1", "m1", "m2", "m2", "m3", "m3"]
