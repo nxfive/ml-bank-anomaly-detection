@@ -4,9 +4,11 @@ import os
 import yaml
 from datetime import datetime
 
+from .paths import CONFIG_DIR
+
+
 def setup_logging(default_level=logging.INFO):
-    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    config_path = os.path.join(PROJECT_ROOT, "config", "logger.yml")
+    config_path = os.path.join(CONFIG_DIR, "logger.yml")
 
     if os.path.exists(config_path):
         with open(config_path, "r") as f:
@@ -25,5 +27,5 @@ def setup_logging(default_level=logging.INFO):
         logging.basicConfig(level=default_level)
 
 
-def get_logger(name: str):
+def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
