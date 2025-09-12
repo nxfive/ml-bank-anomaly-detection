@@ -1,28 +1,28 @@
-import yaml
-import joblib
-from datetime import datetime
 import os
+from datetime import datetime
+from typing import Any
+
+import joblib
+import numpy as np
+import yaml
+from src.utils.paths import MODELS_DIR
 
 
 def save_model_with_metadata(
-    model,
+    *,
+    model: Any,
     model_name: str,
-    train_labels=None,
-    test_labels=None,
-    cat_features=None,
-    num_features=None,
-    params=None,
+    train_preds: np.ndarray,
+    test_preds: np.ndarray,
+    cat_features: list[str],
+    num_features: list[str] | None = None,
+    params: dict[str, float | int],
 ):
     """
     Save model and corresponding metadata to disk.
     """
-    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    model_dir = os.path.join(PROJECT_ROOT, "models")
-
     file_name = model_name.lower().replace(" ", "_")
-
-    model_path = os.path.join(model_dir, f"{file_name}.pkl")
-    print("model_path", model_path)
+    model_path = os.path.join(MODELS_DIR, f"{file_name}.pkl")
     joblib.dump(model, model_path)
 
     metadata = {
@@ -35,11 +35,11 @@ def save_model_with_metadata(
         },
         "params": params or {},
         "metrics": {
-            "n_train_anomalies": int((train_labels == 1).sum()) if train_labels is not None else None,
-            "n_test_anomalies": int((test_labels == 1).sum()) if test_labels is not None else None
+            "n_train_anomalies": int((train_preds == 1).sum()),
+            "n_test_anomalies": int((test_preds == 1).sum())
         }
     }
 
-    metadata_path = os.path.join(model_dir, "metadata", f"{file_name}.yml")
+    metadata_path = os.path.join(MODELS_DIR, "metadata", f"{file_name}.yml")
     with open(metadata_path, "w") as f:
         yaml.safe_dump(metadata, f)
