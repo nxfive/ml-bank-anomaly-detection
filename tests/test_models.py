@@ -55,8 +55,8 @@ class DummyModel:
 
 def test_save_model_with_metadata_mock():
     model = DummyModel()
-    train_labels = np.array([0, 1, 0])
-    test_labels = np.array([1, 0])
+    train_preds = np.array([0, 1, 0])
+    test_preds = np.array([1, 0])
     cat_features = ["cat1", "cat2"]
     num_features = [1, 2]
     params = {"param1": 10}
@@ -68,8 +68,8 @@ def test_save_model_with_metadata_mock():
         save_model_with_metadata(
             model=model,
             model_name=model_name,
-            train_labels=train_labels,
-            test_labels=test_labels,
+            train_preds=train_preds,
+            test_preds=test_preds,
             cat_features=cat_features,
             num_features=num_features,
             params=params
