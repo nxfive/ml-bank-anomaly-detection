@@ -49,7 +49,6 @@ def test_predict_single_model(model_name):
 
 def test_predict_both_models():
     response = client.post("/models/predict", json=list(sample_data))
-    print(response.json())
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
