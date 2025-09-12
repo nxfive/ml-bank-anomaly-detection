@@ -17,16 +17,16 @@ model_mapper = {model_if: "isolation_forest", model_lof: "local_outlier_factor"}
 
 
 def run_pipeline(
-    train_df: pd.DataFrame, test_df: pd.DataFrame, model_fn: callable, **kwargs
+    train_df: pd.DataFrame, test_df: pd.DataFrame, model_fn: callable
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Generic pipeline runner for anomaly detection models.
     """
     logger.info(f"Starting pipeline for model: {model_fn.__name__}")
-
+    train_df, test_df = train_df.copy(), test_df.copy()
     start_pipeline = time.time()
-    train, test = get_model_features(train_df, test_df)
-    logger.info(f"Prepared train/test features: train={len(train)}, test={len(test)}")
+    train_df, test_df = get_model_features(train_df, test_df)
+    logger.info(f"Prepared train/test features: train={len(train_df)}, test={len(test_df)}")
 
     config_path = os.path.join(os.path.dirname(__file__), "config.yml")
     with open(config_path, "r") as file:
@@ -36,8 +36,8 @@ def run_pipeline(
     logger.info(f"Model configuration loaded: {model_name}")
 
     model_params = dict(
-        train_df=train,
-        test_df=test,
+        train_df=train_df,
+        test_df=test_df,
         cat_features=params["cat_features"],
         contamination=params[model_name]["contamination"],
     )
@@ -69,7 +69,7 @@ def run_lof_pipeline(
     return run_pipeline(
         train_df,
         test_df,
-        model_fn=model_lof,
+        model_fn=model_lof
     )
 
 
@@ -79,5 +79,5 @@ def run_if_pipeline(
     return run_pipeline(
         train_df,
         test_df,
-        model_fn=model_if,
+        model_fn=model_if
     )
