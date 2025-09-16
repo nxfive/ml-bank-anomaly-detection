@@ -48,13 +48,9 @@ def main():
     logger.info("Merged model predictions: 'common_fraud' column added")
 
     save_objects(
-        train_df=train_df,
-        test_df=test_df,
-        pred_if_train=pred_if_train,
-        pred_if_test=pred_if_test,
-        pred_lof_train=pred_lof_train,
-        pred_lof_test=pred_lof_test,
         df_predicted=df,
+        df_if_predicted=df_if_full,
+        df_lof_predicted=df_lof_full
     )
     logger.info("All processed data saved successfully")
 
