@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
 import pandas as pd
+from server import server_host, server_port
 
-BASE_URL = "http://127.0.0.1:8000/models"
+BASE_URL = f"http://{server_host}:{server_port}/models"
 
 TRANSACTION_TYPES = ["Credit", "Debit"]
 CHANNELS = ["Online", "ATM", "Branch"]
