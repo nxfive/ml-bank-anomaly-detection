@@ -19,8 +19,6 @@ stages:
 - stage: Build_and_Push
   jobs:
   - job: Build
-    pool:
-      vmImage: 'ubuntu-latest'
     steps:
     - checkout: self
 
@@ -31,9 +29,54 @@ stages:
     - script: |
         docker build -t $(IMAGE_BACKEND):$(TAG) -f server/Dockerfile .
         docker push $(IMAGE_BACKEND):$(TAG)
+        docker tag $(IMAGE_BACKEND):$(TAG) $(IMAGE_BACKEND):latest
+        docker push $(IMAGE_BACKEND):latest
       displayName: 'Build & Push Backend'
 
     - script: |
         docker build -t $(IMAGE_FRONTEND):$(TAG) -f client/Dockerfile .
         docker push $(IMAGE_FRONTEND):$(TAG)
+        docker tag $(IMAGE_FRONTEND):$(TAG) $(IMAGE_FRONTEND):latest
+        docker push $(IMAGE_FRONTEND):latest
       displayName: 'Build & Push Frontend'
+
+- stage: Deploy
+  dependsOn: Build_and_Push
+  jobs:
+    - job: Deploy
+      steps:
+        - task: DownloadSecureFile@1
+          name: DownloadVPSKey
+          inputs:
+            secureFile: vps_azure_rsa_key  
+
+        - script: |
+            set -e
+
+            if ! command -v ssh >/dev/null; then
+              echo "Installing SSH client..."
+              sudo apt-get update -y
+              sudo apt-get install -y openssh-client
+            fi
+
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+
+            chmod 600 $(DownloadVPSKey.secureFilePath)
+
+            ssh-keyscan -p $(SSH_PORT) $(VPS_HOST) >> ~/.ssh/known_hosts
+            echo -e "Host $(VPS_HOST)\n\tUser $(VPS_USER)\n\tIdentityFile $(DownloadVPSKey.secureFilePath)\n\tStrictHostKeyChecking no\n\tPort $(SSH_PORT)\n" > ~/.ssh/config
+            chmod 600 ~/.ssh/config
+            chmod 600 ~/.ssh/known_hosts
+
+            echo "SSH setup done"
+          displayName: 'Setup SSH'
+
+        - script: |
+            scp -P $(SSH_PORT) docker-compose.deploy.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/
+            ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << 'EOF'
+              echo "$(GHCR_TOKEN)" | docker login ghcr.io -u $(GHCR_USERNAME) --password-stdin
+              docker compose -f /home/$(VPS_USER)/docker-compose.deploy.yml pull
+              docker compose -f /home/$(VPS_USER)/docker-compose.deploy.yml up -d
+            EOF
+          displayName: 'Deploy Docker Compose'

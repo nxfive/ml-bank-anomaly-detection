@@ -1,11 +1,11 @@
 services:
   server:
-    image: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/server:latest
+    image: ghcr.io/nxfive/ml-bank-anomaly-detection/server:latest
     ports:
       - 8000:8000
     
   client:
-    image: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/client:latest
+    image: ghcr.io/nxfive/ml-bank-anomaly-detection/client:latest
     ports:
       - 8001:8501
     environment:
