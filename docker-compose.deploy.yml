@@ -1,0 +1,16 @@
+services:
+  server:
+    image: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/server:latest
+    ports:
+      - 8000:8000
+    
+  client:
+    image: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/client:latest
+    ports:
+      - 8001:8501
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=8000
+    depends_on:
+      - server
+    entrypoint: ./entrypoint.sh
