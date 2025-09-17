@@ -1,6 +1,6 @@
 import streamlit as st
-from transactions import show_transactions
-from models import show_models
+from app.transactions import show_transactions
+from app.models import show_models
 
 st.sidebar.title("Menu")
 page = st.sidebar.selectbox("Choose a page", ["Transactions", "Models"])  

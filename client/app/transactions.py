@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import pandas as pd
-from server import server_host, server_port
+from .server import server_host, server_port
 
 BASE_URL = f"http://{server_host}:{server_port}/transactions"
 
