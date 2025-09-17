@@ -1,0 +1,39 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: IMAGE_BACKEND
+    value: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/server
+  - name: IMAGE_FRONTEND
+    value: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/client
+  - name: TAG
+    value: $(Build.Build)
+
+  - group: ghcr-vars    
+  - group: vps-vars
+
+stages:
+- stage: Build_and_Push
+  jobs:
+  - job: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - script: |
+        echo "$(GHCR_TOKEN)" | docker login ghcr.io -u $(GHCR_USERNAME) --password-stdin
+      displayName: 'Login to GitHub Container Registry'
+
+    - script: |
+        docker build -t $(IMAGE_BACKEND):$(TAG) -f server/Dockerfile .
+        docker push $(IMAGE_BACKEND):$(TAG)
+      displayName: 'Build & Push Backend'
+
+    - script: |
+        docker build -t $(IMAGE_FRONTEND):$(TAG) -f client/Dockerfile .
+        docker push $(IMAGE_FRONTEND):$(TAG)
+      displayName: 'Build & Push Frontend'
