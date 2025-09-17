@@ -1,7 +1,7 @@
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
-from server.schemas import Transaction
+from server.app.schemas import Transaction
 from src.models.inference import (MODELS, prepare_data,
                                   run_single_model_prediction)
 
