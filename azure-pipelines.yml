@@ -10,7 +10,7 @@ variables:
   - name: IMAGE_FRONTEND
     value: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/client
   - name: TAG
-    value: $(Build.Build)
+    value: $(Build.BuildId)
 
   - group: ghcr-vars    
   - group: vps-vars
