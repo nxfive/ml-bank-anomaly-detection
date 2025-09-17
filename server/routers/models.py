@@ -26,7 +26,7 @@ def predict(
         raise HTTPException(status_code=404, detail="Model not found")
 
     df_raw, df = prepare_data(data)
-    df_raw["isFraud"] = run_single_model_prediction(model_name, df)
+    df_raw["isFraud"] = (run_single_model_prediction(model_name, df) == -1)
 
     return df_raw.to_dict(orient="records")
 
@@ -38,10 +38,8 @@ def predict_both(data: list[Transaction]) -> list[dict[str, Any]]:
     pred_if = run_single_model_prediction("isolation_forest", df)
     pred_lof = run_single_model_prediction("local_outlier_factor", df)
 
-    fraud = ((pred_if == -1) & (pred_lof == -1)).astype(int)
-
-    df_raw["isFraud"] = fraud
-    df_raw["if_pred"] = pred_if
-    df_raw["lof_pred"] = pred_lof
+    df_raw["if_pred"] = (pred_if == -1)
+    df_raw["lof_pred"] = (pred_lof == -1)
+    df_raw["isFraud"] = df_raw["if_pred"] & df_raw["lof_pred"]
 
     return df_raw.to_dict(orient="records")
