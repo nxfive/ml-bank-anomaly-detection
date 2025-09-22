@@ -37,6 +37,7 @@ stages:
         displayName: "Install dependencies"
 
       - script: |
+          python -m src.main
           export ENV=dev
           pytest -v
         displayName: "Run tests"
@@ -99,8 +100,16 @@ stages:
 
         - script: |
             scp -P $(SSH_PORT) docker-compose.deploy.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/
+            ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) "
+              mkdir -p /home/$(VPS_USER)/prometheus
+              mkdir -p /home/$(VPS_USER)/alertmanager
+            "
+            scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/prometheus/
+            scp -P $(SSH_PORT) alertmanager.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/alertmanager/
+            scp -P $(SSH_PORT) grafana-entrypoint.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/
+
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
-              export MTP_SMARTHOST=$(SMTP_SMARTHOST)
+              export SMTP_SMARTHOST=$(SMTP_SMARTHOST)
               export SMTP_FROM=$(SMTP_FROM)
               export SMTP_USERNAME=$(SMTP_USERNAME)
               export SMTP_PASSWORD=$(SMTP_PASSWORD)
