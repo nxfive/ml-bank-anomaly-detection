@@ -1,0 +1,27 @@
+groups:
+- name: ml_app_alerts
+  rules:
+  - alert: HighRAMUsage
+    expr: ml_app_ram_usage_mb / 1024 * 100 / 12 > 80
+    for: 1m
+    labels: { severity: warning }
+    annotations:
+      summary: "RAM usage above 80%"
+  - alert: HighCPUUsage
+    expr: ml_app_cpu_usage_percent > 90
+    for: 1m
+    labels: { severity: warning }
+    annotations:
+      summary: "CPU usage above 90%"
+  - alert: ServerErrors
+    expr: sum(rate(ml_app_http_responses_total{status=~"5.."}[5m])) >= 2
+    for: 1m
+    labels: { severity: critical }
+    annotations:
+      summary: "More than 2 server errors (5xx) in 5 minutes"
+  - alert: ClientErrors
+    expr: sum(rate(ml_app_http_responses_total{status=~"4.."}[5m])) >= 2
+    for: 1m
+    labels: { severity: warning }
+    annotations:
+      summary: "More than 2 client errors (4xx) in 5 minutes"
