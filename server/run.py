@@ -2,9 +2,10 @@ import os
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from prometheus_client import make_asgi_app
 
 from server.app.routers import api
-from server.app.routers.metrics import track_metrics, make_asgi_app
+from server.app.routers.metrics import track_metrics
 
 app = FastAPI()
 app.include_router(api.router)
