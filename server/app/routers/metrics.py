@@ -1,20 +1,17 @@
-
-from fastapi import FastAPI, HTTPException
-from prometheus_client import Counter, Histogram, Gauge
+import time
 from functools import wraps
-import time, psutil
 
-app = FastAPI()
+import psutil
+from fastapi import HTTPException
+from prometheus_client import Counter, Gauge, Histogram
 
 HTTP_STATUS_COUNT = Counter(
-    "ml_app_http_responses_total",
+    "ml_app_http_responses",
     "Total HTTP responses by status",
     ["endpoint", "status"]
 )
 REQUEST_LATENCY = Histogram(
-    "ml_app_request_latency_seconds",
-    "Request latency in seconds",
-    ["endpoint"]
+    "ml_app_request_latency_seconds", "Request latency in seconds", ["endpoint"]
 )
 RAM_USAGE = Gauge("ml_app_ram_usage_mb", "RAM usage in MB")
 CPU_USAGE = Gauge("ml_app_cpu_usage_percent", "CPU usage percent")
