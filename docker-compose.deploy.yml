@@ -18,8 +18,7 @@ services:
   prometheus:
     image: prom/prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./alerts.yml:/etc/prometheus/alerts.yml
+      - /home/ubuntu/prometheus :/etc/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--alertmanager.url=http://alertmanager:9093"
@@ -29,9 +28,11 @@ services:
   alertmanager:
     image: prom/alertmanager
     volumes:
-      - ./alertmanager.yml:/etc/alertmanager/config.yml
+      - /home/ubuntu/alertmanager:/etc/alertmanager
     ports:
       - "9093:9093"
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
 
   grafana:
     image: grafana/grafana
@@ -40,5 +41,5 @@ services:
     depends_on:
       - prometheus
     volumes:
-      - ./grafana-entrypoint.sh:/grafana-entrypoint.sh
+      - /home/ubuntu/grafana-entrypoint.sh:/grafana-entrypoint.sh
     entrypoint: ["/bin/bash", "/grafana-entrypoint.sh"]
