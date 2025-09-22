@@ -14,3 +14,31 @@ services:
     depends_on:
       - server
     entrypoint: ./entrypoint.sh
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--alertmanager.url=http://alertmanager:9093"
+    ports:
+      - "9090:9090"
+
+  alertmanager:
+    image: prom/alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/config.yml
+    ports:
+      - "9093:9093"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    volumes:
+      - ./grafana-entrypoint.sh:/grafana-entrypoint.sh
+    entrypoint: ["/bin/bash", "/grafana-entrypoint.sh"]
