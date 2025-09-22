@@ -1,9 +1,11 @@
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
+
 from server.app.schemas import Transaction
 from src.models.inference import (MODELS, prepare_data,
                                   run_single_model_prediction)
+
 from .metrics import track_metrics
 
 router = APIRouter(prefix="/models", tags=["models"])
@@ -20,7 +22,7 @@ def get_models():
 
 @router.post("/{model_name}/predict")
 @track_metrics
-def predict(
+async def predict(
     model_name: Literal["isolation_forest", "local_outlier_factor"],
     data: list[Transaction],
 ) -> list[dict[str, Any]]:
@@ -35,7 +37,7 @@ def predict(
 
 @router.post("/predict")
 @track_metrics
-def predict_both(data: list[Transaction]) -> list[dict[str, Any]]:
+async def predict_both(data: list[Transaction]) -> list[dict[str, Any]]:
     df_raw, df = prepare_data(data)
 
     pred_if = run_single_model_prediction("isolation_forest", df)
