@@ -18,14 +18,11 @@ variables:
 
 stages:
 - stage: Test_App
-  displayName: "Run Unit Tests"
+  displayName: 'Run Unit Tests'
   jobs:
   - job: Test
-    pool:
-      vmImage: 'ubuntu-latest'
     steps:
       - checkout: self
-
       - task: UsePythonVersion@0
         inputs:
           versionSpec: '3.12'
@@ -34,13 +31,15 @@ stages:
       - script: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        displayName: "Install dependencies"
+        displayName: 'Install Dependencies'
+
+      - script: python -m src.main
+        displayName: 'Build App'
 
       - script: |
-          python -m src.main
           export ENV=dev
           pytest -v
-        displayName: "Run tests"
+        displayName: 'Run Tests'
 
 - stage: Build_and_Push
   jobs:
@@ -71,6 +70,7 @@ stages:
   jobs:
     - job: Deploy
       steps:
+        - checkout: self
         - task: DownloadSecureFile@1
           name: DownloadVPSKey
           inputs:
@@ -99,24 +99,30 @@ stages:
           displayName: 'Setup SSH'
 
         - script: |
-            scp -P $(SSH_PORT) docker-compose.deploy.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/
+            APP_DIR=ml-bank-anomaly-detection
+
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) "
-              mkdir -p /home/$(VPS_USER)/prometheus
-              mkdir -p /home/$(VPS_USER)/alertmanager
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/prometheus
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/alertmanager
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/grafana
             "
-            scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/prometheus/
-            scp -P $(SSH_PORT) alertmanager.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/alertmanager/
-            scp -P $(SSH_PORT) grafana-entrypoint.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/
+            scp -P $(SSH_PORT) docker-compose.deploy.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
+            scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
+            scp -P $(SSH_PORT) alertmanager.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
+            scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
 
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
+              export APP_DIR=$APP_DIR
               export SMTP_SMARTHOST=$(SMTP_SMARTHOST)
               export SMTP_FROM=$(SMTP_FROM)
               export SMTP_USERNAME=$(SMTP_USERNAME)
               export SMTP_PASSWORD=$(SMTP_PASSWORD)
               export SMTP_TO=$(SMTP_TO)
-              
+
+              mv /home/$(VPS_USER)/$APP_DIR/docker-compose.deploy.yml /home/$(VPS_USER)/$APP_DIR/docker-compose.yml
+
               echo "$(GHCR_TOKEN)" | docker login ghcr.io -u $(GHCR_USERNAME) --password-stdin
-              docker compose -f /home/$(VPS_USER)/docker-compose.deploy.yml pull
-              docker compose -f /home/$(VPS_USER)/docker-compose.deploy.yml up -d
+              docker compose -f /home/$(VPS_USER)/$APP_DIR/docker-compose.yml pull
+              docker compose -f /home/$(VPS_USER)/$APP_DIR/docker-compose.yml up -d
             EOF
-          displayName: 'Deploy Docker Compose'
+          displayName: 'Deploy App'
