@@ -3,6 +3,8 @@ services:
     image: ghcr.io/nxfive/ml-bank-anomaly-detection/server:latest
     ports:
       - 8000:8000
+    networks:
+      - traefik-net
     
   client:
     image: ghcr.io/nxfive/ml-bank-anomaly-detection/client:latest
@@ -14,6 +16,16 @@ services:
     depends_on:
       - server
     entrypoint: ./entrypoint.sh
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=Host(`ml-bank-anomaly-detection.nxfive.pl`)"
+      - "traefik.http.routers.client.entrypoints=websecure"
+      - "traefik.http.routers.client.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
+      - "traefik.http.routers.client.middlewares=ratelimit"
+    networks:
+      - traefik-net
 
   prometheus:
     image: prom/prometheus
@@ -23,6 +35,8 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
     ports:
       - "9090:9090"
+    networks:
+      - traefik-net
 
   alertmanager:
     image: prom/alertmanager
@@ -32,6 +46,14 @@ services:
       - "9093:9093"
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
+    environment:
+      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_SMARTHOST=${SMTP_SMARTHOST}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_TO=${SMTP_TO}
+    networks:
+      - traefik-net
 
   grafana:
     image: grafana/grafana
@@ -41,4 +63,21 @@ services:
       - prometheus
     volumes:
       - /home/ubuntu/${APP_DIR}/grafana:/grafana
-    entrypoint: ["/bin/bash", "grafana/grafana-entrypoint.sh"]
+    entrypoint: ["/bin/bash", "/grafana/grafana-entrypoint.sh"]
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`ml-bank-anomaly-detection.grafana.nxfive.pl`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
+      - "traefik.http.routers.grafana.middlewares=ratelimit"
+    networks:
+      - traefik-net
+
+networks:
+  traefik-net:
+    external: true
