@@ -18,17 +18,16 @@ services:
   prometheus:
     image: prom/prometheus
     volumes:
-      - /home/ubuntu/prometheus :/etc/prometheus
+      - /home/ubuntu/${APP_DIR}/prometheus:/etc/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--alertmanager.url=http://alertmanager:9093"
     ports:
       - "9090:9090"
 
   alertmanager:
     image: prom/alertmanager
     volumes:
-      - /home/ubuntu/alertmanager:/etc/alertmanager
+      - /home/ubuntu/${APP_DIR}/alertmanager:/etc/alertmanager
     ports:
       - "9093:9093"
     command:
@@ -41,5 +40,5 @@ services:
     depends_on:
       - prometheus
     volumes:
-      - /home/ubuntu/grafana-entrypoint.sh:/grafana-entrypoint.sh
-    entrypoint: ["/bin/bash", "/grafana-entrypoint.sh"]
+      - /home/ubuntu/${APP_DIR}/grafana:/grafana
+    entrypoint: ["/bin/bash", "grafana/grafana-entrypoint.sh"]
