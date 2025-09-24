@@ -109,7 +109,7 @@ stages:
             "
             scp -P $(SSH_PORT) docker-compose.deploy.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
             scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
-            scp -P $(SSH_PORT) alertmanager.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
+            scp -P $(SSH_PORT) alertmanager.yml.template alertmanager-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
             scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
 
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
