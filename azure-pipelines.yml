@@ -15,6 +15,7 @@ variables:
   - group: ghcr-vars    
   - group: vps-vars
   - group: alert-manager
+  - group: grafana-vars
 
 stages:
 - stage: Test_App
@@ -118,11 +119,13 @@ stages:
               export SMTP_USERNAME=$(SMTP_USERNAME)
               export SMTP_PASSWORD=$(SMTP_PASSWORD)
               export SMTP_TO=$(SMTP_TO)
+              export GF_SECURITY_ADMIN_USER=$(GF_SECURITY_ADMIN_USER)
+              export GF_SECURITY_ADMIN_PASSWORD=$(GF_SECURITY_ADMIN_PASSWORD)
 
               mv /home/$(VPS_USER)/$APP_DIR/docker-compose.deploy.yml /home/$(VPS_USER)/$APP_DIR/docker-compose.yml
 
               echo "$(GHCR_TOKEN)" | docker login ghcr.io -u $(GHCR_USERNAME) --password-stdin
               docker compose -f /home/$(VPS_USER)/$APP_DIR/docker-compose.yml pull
-              docker compose -f /home/$(VPS_USER)/$APP_DIR/docker-compose.yml up -d
+              docker compose -f /home/$(VPS_USER)/$APP_DIR/docker-compose.yml up -d --build --force-recreate
             EOF
           displayName: 'Deploy App'
