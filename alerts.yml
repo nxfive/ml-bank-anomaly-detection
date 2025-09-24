@@ -25,3 +25,12 @@ groups:
     labels: { severity: warning }
     annotations:
       summary: "More than 2 client errors (4xx) in 5 minutes"
+- name: ml_app_health
+  rules:
+    - alert: AppDown
+      expr: up{job="health"} == 0
+      for: 1m
+      labels: { severity: critical }
+      annotations:
+        summary: "Backend API is down"
+        description: "The backend server has not responded for more than 1 minute"
