@@ -26,6 +26,6 @@ filebeat.inputs:
 
 output.elasticsearch:
   hosts: [${ELASTIC_HOST}]
-  username: ${ELASTIC_USERNAME}
-  password: ${ELASTIC_PASSWORD}
+  username: ${ELASTIC_FILEBEAT_USER}
+  password: ${ELASTIC_FILEBEAT_PASS}
   ssl.certificate_authorities: ["/usr/share/filebeat/certs/ca.crt"]
