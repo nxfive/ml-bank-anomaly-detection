@@ -1,0 +1,35 @@
+version: 1
+
+formatters:
+  json:
+    "()": pythonjsonlogger.jsonlogger.JsonFormatter
+    format: "%(asctime)s %(name)s %(levelname)s %(module)s %(message)s"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: json
+    level: INFO
+  file:
+    class: logging.FileHandler
+    formatter: json
+    level: INFO
+    filename: "/logs/app.log"  
+    
+loggers:
+  main:
+    handlers: [console, file]
+    level: INFO
+    propagate: no
+  features:
+    handlers: [console, file]
+    level: INFO
+    propagate: no
+  models:
+    handlers: [console, file]
+    level: INFO
+    propagate: no
+
+root:
+  handlers: [console, file]
+  level: INFO
