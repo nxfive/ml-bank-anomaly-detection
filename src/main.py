@@ -6,12 +6,12 @@ from src.utils.logger import setup_logging, get_logger
 
 import pandas as pd
 import logging
-
-setup_logging()
-logger = get_logger(name="main")
+import warnings
+import os
 
 
 def main():
+    logger = get_logger(name="main")
     logger.info("Starting main pipeline...")
 
     df_raw = read_data()
@@ -56,5 +56,11 @@ def main():
 
 
 if __name__ == "__main__":
+    ENV = os.getenv("ENV", "dev")
+    
+    if ENV == "prod":
+        warnings.filterwarnings("ignore")
+    
+    setup_logging()  
     main()
     logging.shutdown()
