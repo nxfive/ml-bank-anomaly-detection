@@ -12,6 +12,7 @@ COPY server/ ./server
 COPY src/ ./src
 COPY models/ ./models
 COPY data/ ./data
+COPY logs/ ./logs
 
 RUN python -m venv ./venv
 ENV PATH="/backend/venv/bin:$PATH"
