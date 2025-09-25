@@ -1,15 +1,13 @@
 services:
   server:
     image: ghcr.io/nxfive/ml-bank-anomaly-detection/server:latest
-    ports:
-      - 8000:8000
+    volumes:
+      - /home/ubuntu/${APP_DIR}/logs:/logs
     networks:
       - traefik-net
     
   client:
     image: ghcr.io/nxfive/ml-bank-anomaly-detection/client:latest
-    ports:
-      - 8001:8501
     environment:
       - SERVER_HOST=server
       - SERVER_PORT=8000
@@ -33,8 +31,6 @@ services:
       - /home/ubuntu/${APP_DIR}/prometheus:/etc/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-    ports:
-      - "9090:9090"
     networks:
       - traefik-net
 
@@ -42,8 +38,6 @@ services:
     image: prom/alertmanager
     volumes:
       - /home/ubuntu/${APP_DIR}/alertmanager:/etc/alertmanager
-    ports:
-      - "9093:9093"
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
     networks:
@@ -51,8 +45,6 @@ services:
 
   grafana:
     image: grafana/grafana
-    ports:
-      - "3001:3000"
     depends_on:
       - prometheus
     volumes:
@@ -69,9 +61,64 @@ services:
       - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
       - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
       - "traefik.http.routers.grafana.middlewares=ratelimit"
+      - "traefik.http.middlewares.grafana-auth.basicauth.users=admin:$$apr1$$Mbo6ax46$$YQ6.GD2JNjYJ0Wx4MRryC."
+      - "traefik.http.routers.grafana.middlewares=grafana-auth,ratelimit"
     networks:
       - traefik-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 3g
+    volumes:
+      - /home/ubuntu/${APP_DIR}/elk/certs:/usr/share/elasticsearch/config/certs:ro
+    networks:
+      - elk-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTIC_HOST}
+      - ELASTICSEARCH_USERNAME=${ELASTIC_USERNAME}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_CA_CERT=/usr/share/kibana/config/certs/ca.crt
+    volumes:
+      - /home/ubuntu/ml-bank-anomaly-detection/elk/certs:/usr/share/kibana/config/certs:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk-net
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kibana.rule=Host(`ml-bank-anomaly-detection.kibana.nxfive.pl`)"
+      - "traefik.http.routers.kibana.entrypoints=websecure"
+      - "traefik.http.routers.kibana.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
+      - "traefik.http.middlewares.kibana-auth.basicauth.users=admin:$$apr1$$Mbo6ax46$$YQ6.GD2JNjYJ0Wx4MRryC."
+      - "traefik.http.routers.kibana.middlewares=kibana-auth"
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.12.0
+    user: root
+    volumes:
+      - /home/ubuntu/${APP_DIR}/logs:/usr/share/filebeat/logs:ro
+      - /home/ubuntu/${APP_DIR}/elk/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /home/ubuntu/${APP_DIR}/elk/certs:/usr/share/filebeat/certs:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk-net
 
 networks:
   traefik-net:
     external: true
+  elk-net:
+    driver: bridge
