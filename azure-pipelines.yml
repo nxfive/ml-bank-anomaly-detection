@@ -109,6 +109,7 @@ stages:
               mkdir -p /home/$(VPS_USER)/$APP_DIR/grafana
               mkdir -p /home/$(VPS_USER)/$APP_DIR/logs
               mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/certs
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/init
             "
             scp -P $(SSH_PORT) docker-compose.deploy.yml config.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
             scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
@@ -116,6 +117,7 @@ stages:
             scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
             scp -P $(SSH_PORT) filebeat.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/
             scp -P $(SSH_PORT) generate-certs.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/certs/
+            scp -P $(SSH_PORT) init.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/init/
 
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
               export ENV=prod
@@ -130,6 +132,8 @@ stages:
               export ELASTIC_PASSWORD=$(ELASTIC_PASSWORD)
               export ELASTIC_USERNAME=$(ELASTIC_USERNAME)
               export ELASTIC_HOST=$(ELASTIC_HOST)
+              export ELASTIC_FILEBEAT_PASS=$(ELASTIC_FILEBEAT_PASS)
+              export ELASTIC_FILEBEAT_USER=$(ELASTIC_FILEBEAT_USER)
 
               /bin/bash /home/$(VPS_USER)/$APP_DIR/config.sh
               /bin/bash /home/$(VPS_USER)/$APP_DIR/elk/certs/generate-certs.sh
