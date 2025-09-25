@@ -1,20 +1,50 @@
 import os
+import time
 import warnings
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from prometheus_client import make_asgi_app
 
 from server.app.routers import api
 from server.app.routers.metrics import track_metrics
+from src.utils.logger import get_logger, setup_logging
 
-ENV = os.getenv("ENV", "prod")
+setup_logging()
+logger = get_logger("main")
+
+
+ENV = os.getenv("ENV", "dev")
 
 if ENV != "dev":
     warnings.filterwarnings("ignore")
 
 app = FastAPI()
 app.include_router(api.router)
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = round(time.time() - start, 3)
+
+    logger.info(
+        "HTTP request",
+        extra={
+            "method": request.method,
+            "url": str(request.url),
+            "status": response.status_code,
+            "duration": duration,
+            "client": request.client.host,
+            "endpoint": (
+                request.scope.get("endpoint").__name__
+                if request.scope.get("endpoint")
+                else None
+            ),
+        },
+    )
+    return response
 
 
 @app.get("/health")
@@ -40,7 +70,7 @@ app.mount("/metrics", metrics_app)
 
 
 if __name__ == "__main__":
-    log_level = "debug" if os.getenv("ENV") == "dev" else "warning"
+    log_level = "debug" if os.getenv("ENV") == "dev" else "info"
     uvicorn.run(
         app=app, host="0.0.0.0", port=8000, workers=1, reload=False, log_level=log_level
     )
