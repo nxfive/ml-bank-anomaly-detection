@@ -1,0 +1,31 @@
+name: "server-filebeat"
+
+setup.ilm.enabled: true
+setup.ilm.rollover_alias: "server-app"
+setup.ilm.pattern: "{now/d}-000001"
+setup.template.enabled: true
+setup.template.name: "server-app"
+setup.template.pattern: "server-app-*"
+
+logging.metrics.enabled: false
+xpack.security.enabled: false
+xpack.monitoring.enabled: false
+
+filebeat.inputs:
+  - type: log
+    enabled: true
+    scan_frequency: 1s
+    paths:
+      - /usr/share/filebeat/logs/*.log   
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.message_key: message
+    fields:
+      service: server                  
+    fields_under_root: true
+
+output.elasticsearch:
+  hosts: [${ELASTIC_HOST}]
+  username: ${ELASTIC_USERNAME}
+  password: ${ELASTIC_PASSWORD}
+  ssl.certificate_authorities: ["/usr/share/filebeat/certs/ca.crt"]
