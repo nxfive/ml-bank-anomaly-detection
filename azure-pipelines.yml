@@ -109,7 +109,7 @@ stages:
             "
             scp -P $(SSH_PORT) docker-compose.deploy.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
             scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
-            scp -P $(SSH_PORT) alertmanager.yml.template alertmanager-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
+            scp -P $(SSH_PORT) alertmanager.yml.template alertmanager-config.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
             scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
 
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
@@ -121,6 +121,8 @@ stages:
               export SMTP_TO=$(SMTP_TO)
               export GF_SECURITY_ADMIN_USER=$(GF_SECURITY_ADMIN_USER)
               export GF_SECURITY_ADMIN_PASSWORD=$(GF_SECURITY_ADMIN_PASSWORD)
+
+              /bin/bash /home/$(VPS_USER)/$APP_DIR/alertmanager/alertmanager-config.sh
 
               mv /home/$(VPS_USER)/$APP_DIR/docker-compose.deploy.yml /home/$(VPS_USER)/$APP_DIR/docker-compose.yml
 
