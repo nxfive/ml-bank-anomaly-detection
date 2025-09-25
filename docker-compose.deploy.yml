@@ -46,13 +46,6 @@ services:
       - "9093:9093"
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
-    environment:
-      - SMTP_FROM=${SMTP_FROM}
-      - SMTP_SMARTHOST=${SMTP_SMARTHOST}
-      - SMTP_USERNAME=${SMTP_USERNAME}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - SMTP_TO=${SMTP_TO}
-    entrypoint: ["/bin/sh", "/etc/alertmanager/alertmanager-entrypoint.sh"]
     networks:
       - traefik-net
 
