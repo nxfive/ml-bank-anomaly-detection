@@ -16,6 +16,7 @@ variables:
   - group: vps-vars
   - group: alert-manager
   - group: grafana-vars
+  - group: elk-vars
 
 stages:
 - stage: Test_App
@@ -106,13 +107,18 @@ stages:
               mkdir -p /home/$(VPS_USER)/$APP_DIR/prometheus
               mkdir -p /home/$(VPS_USER)/$APP_DIR/alertmanager
               mkdir -p /home/$(VPS_USER)/$APP_DIR/grafana
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/logs
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/certs
             "
             scp -P $(SSH_PORT) docker-compose.deploy.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
             scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
             scp -P $(SSH_PORT) alertmanager.yml.template alertmanager-config.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
             scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
+            scp -P $(SSH_PORT) filebeat.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/
+            scp -P $(SSH_PORT) generate-certs.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/certs/
 
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
+              export ENV=prod
               export APP_DIR=$APP_DIR
               export SMTP_SMARTHOST=$(SMTP_SMARTHOST)
               export SMTP_FROM=$(SMTP_FROM)
@@ -121,9 +127,12 @@ stages:
               export SMTP_TO=$(SMTP_TO)
               export GF_SECURITY_ADMIN_USER=$(GF_SECURITY_ADMIN_USER)
               export GF_SECURITY_ADMIN_PASSWORD=$(GF_SECURITY_ADMIN_PASSWORD)
+              export ELASTIC_PASSWORD=$(ELASTIC_PASSWORD)
+              export ELASTIC_USERNAME=$(ELASTIC_USERNAME)
+              export ELASTIC_HOST=$(ELASTIC_HOST)
 
               /bin/bash /home/$(VPS_USER)/$APP_DIR/alertmanager/alertmanager-config.sh
-
+              /bin/bash /home/$(VPS_USER)/$APP_DIR/elk/certs/generate-certs.sh
               mv /home/$(VPS_USER)/$APP_DIR/docker-compose.deploy.yml /home/$(VPS_USER)/$APP_DIR/docker-compose.yml
 
               echo "$(GHCR_TOKEN)" | docker login ghcr.io -u $(GHCR_USERNAME) --password-stdin
