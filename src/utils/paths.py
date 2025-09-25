@@ -3,6 +3,9 @@ import os
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
+ELK_CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
+ELK_LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
+
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "src", "config")
 LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
 MODELS_DIR = os.path.join(PROJECT_ROOT, "models")
