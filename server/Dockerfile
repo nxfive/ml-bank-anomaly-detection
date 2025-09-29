@@ -28,7 +28,7 @@ COPY --from=builder /backend/venv ./venv
 COPY --from=builder /backend/server ./server
 COPY --from=builder /backend/src ./src
 COPY --from=builder /backend/models ./models
-COPY --from=builder /backend/data/processed ./data/processed
+COPY --from=builder /backend/data ./data
 COPY --from=builder /backend/config ./config
 
 ENV PATH="/backend/venv/bin:$PATH"
