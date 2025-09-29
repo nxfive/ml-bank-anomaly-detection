@@ -1,5 +1,7 @@
 #!/bin/bash
-until curl -s -k -u elastic:${ELASTIC_PASSWORD} ${ELASTIC_HOST}; do
+set -e
+
+until curl -s -k -u elastic:${ELASTIC_PASSWORD} ${ELASTIC_HOST} > /dev/null; do
   echo "Waiting for Elasticsearch..."
   sleep 5
 done
@@ -24,4 +26,4 @@ curl -s -k -u elastic:${ELASTIC_PASSWORD} -X POST "${ELASTIC_HOST}/_security/use
   \"full_name\": \"Filebeat Writer\"
 }"
 
-exec /usr/local/bin/docker-entrypoint.sh eswrapper
+exec /usr/share/filebeat/filebeat "$@"
