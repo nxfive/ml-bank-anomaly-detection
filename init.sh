@@ -6,7 +6,7 @@ until curl -s -k -u elastic:${ELASTIC_PASSWORD} ${ELASTIC_HOST} > /dev/null; do
   sleep 5
 done
 
-curl -s -k -u elastic:${ELASTIC_PASSWORD} -X PUT "${ELASTIC_HOST}/_security/role/filebeat_writer_role" \
+curl -s -k -u elastic:${ELASTIC_PASSWORD} -X PUT "${ELASTIC_HOST}/_security/role/${SERVICE}_role" \
 --cacert /usr/share/elasticsearch/config/certs/ca.crt \
 -H 'Content-Type: application/json' -d '{
   "cluster": ["manage_index_templates", "monitor", "read_ilm"],
@@ -18,12 +18,23 @@ curl -s -k -u elastic:${ELASTIC_PASSWORD} -X PUT "${ELASTIC_HOST}/_security/role
   ]
 }'
 
-curl -s -k -u elastic:${ELASTIC_PASSWORD} -X POST "${ELASTIC_HOST}/_security/user/filebeat_writer" \
+curl -s -k -u elastic:${ELASTIC_PASSWORD} -X POST "${ELASTIC_HOST}/_security/user/${SERVICE}" \
 --cacert /usr/share/elasticsearch/config/certs/ca.crt \
 -H "Content-Type: application/json" -d "{
-  \"password\": \"${ELASTIC_FILEBEAT_PASS}\",
+  \"password\": \"${ELASTIC_SERVICE_PASS}\",
   \"roles\": [\"filebeat_writer_role\"],
   \"full_name\": \"Filebeat Writer\"
 }"
 
-exec /usr/share/filebeat/filebeat "$@"
+case "$SERVICE" in
+  filebeat)
+    exec /usr/share/filebeat/filebeat "$@"
+    ;;
+  kibana)
+    exec /usr/local/bin/kibana-docker "$@"
+    ;;
+  *)
+    echo "Unknown service: $SERVICE"
+    exit 1
+    ;;
+esac
