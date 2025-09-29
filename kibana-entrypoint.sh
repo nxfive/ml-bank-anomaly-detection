@@ -4,4 +4,4 @@ until curl -s -k -u ${ELASTIC_USERNAME}:${ELASTIC_PASSWORD} https://elasticsearc
   sleep 5
 done
 
-exec /usr/share/kibana/bin/kibana-entrypoint
+exec /usr/local/bin/kibana-docker "$@"
