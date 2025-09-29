@@ -26,4 +26,4 @@ curl -s -k -u elastic:${ELASTIC_PASSWORD} -X POST "${ELASTIC_HOST}/_security/use
   \"full_name\": \"Filebeat Writer\"
 }"
 
-exec /usr/share/filebeat/filebeat "$@"
+exec /usr/bin/filebeat "$@"
