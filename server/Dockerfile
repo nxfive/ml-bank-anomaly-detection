@@ -12,13 +12,12 @@ COPY server/ ./server
 COPY src/ ./src
 COPY models/ ./models
 COPY data/ ./data
-COPY logs/ ./logs
+COPY config/ ./config
 
 RUN python -m venv ./venv
 ENV PATH="/backend/venv/bin:$PATH"
 
 RUN pip install --upgrade pip && pip install --no-cache-dir -r server/requirements.txt
-RUN python -m src.main
 
 
 FROM python:3.12-slim
@@ -30,10 +29,11 @@ COPY --from=builder /backend/server ./server
 COPY --from=builder /backend/src ./src
 COPY --from=builder /backend/models ./models
 COPY --from=builder /backend/data/processed ./data/processed
-
-RUN rm -rf ./src/logs
+COPY --from=builder /backend/config ./config
 
 ENV PATH="/backend/venv/bin:$PATH"
-ENV ENV=prod
+ENV APP_ENV=prod
 
-CMD ["python", "-m", "server.run"]
+RUN mkdir -p /backend/logs
+
+ENTRYPOINT ["/bin/bash", "/backend/server/server-entrypoint.sh"]
