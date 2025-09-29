@@ -115,7 +115,7 @@ stages:
             scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
             scp -P $(SSH_PORT) alertmanager.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
             scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
-            scp -P $(SSH_PORT) filebeat.yml.template kibana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/
+            scp -P $(SSH_PORT) filebeat.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/
             scp -P $(SSH_PORT) generate-certs.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/certs/
             scp -P $(SSH_PORT) init.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/init/
 
@@ -133,7 +133,7 @@ stages:
               export ELASTIC_USERNAME=$(ELASTIC_USERNAME)
               export ELASTIC_HOST=$(ELASTIC_HOST)
               export ELASTIC_FILEBEAT_PASS=$(ELASTIC_FILEBEAT_PASS)
-              export ELASTIC_FILEBEAT_USER=$(ELASTIC_FILEBEAT_USER)
+              export ELASTIC_KIBANA_PASS=$(ELASTIC_KIBANA_PASS)
 
               /bin/bash /home/$(VPS_USER)/$APP_DIR/config.sh
               /bin/bash /home/$(VPS_USER)/$APP_DIR/elk/certs/generate-certs.sh
