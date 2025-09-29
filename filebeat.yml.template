@@ -11,6 +11,10 @@ logging.metrics.enabled: false
 xpack.security.enabled: false
 xpack.monitoring.enabled: false
 
+logging:
+  level: info
+  to_files: false
+
 filebeat.inputs:
   - type: log
     enabled: true
