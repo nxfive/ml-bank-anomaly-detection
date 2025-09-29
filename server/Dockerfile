@@ -34,5 +34,6 @@ COPY --from=builder /backend/data/processed ./data/processed
 RUN rm -rf ./src/logs
 
 ENV PATH="/backend/venv/bin:$PATH"
+ENV ENV=prod
 
 CMD ["python", "-m", "server.run"]
