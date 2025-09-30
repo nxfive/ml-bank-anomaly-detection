@@ -9,7 +9,11 @@ KIBANA_TOKEN=$(curl -s -k -u ${ELASTIC_USERNAME}:${ELASTIC_PASSWORD} \
   -H "Content-Type: application/json" \
   | grep -oP '"value":"\K[^"]+')
 
-export ELASTICSEARCH_USERNAME="kibana-system"
-export ELASTICSEARCH_PASSWORD=$KIBANA_TOKEN
+
+cat > /usr/share/kibana/config/kibana.yml << EOF
+    elasticsearch.hosts: ["https://elasticsearch:9200"]
+    elasticsearch.username: "kibana-system"
+    elasticsearch.password: "$KIBANA_TOKEN"
+EOF
 
 exec /usr/local/bin/kibana-docker "$@"
