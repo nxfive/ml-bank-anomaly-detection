@@ -122,7 +122,7 @@ stages:
             scp -P $(SSH_PORT) check-elastic-login.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/entrypoint/
 
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
-              export APP_DIR=$(APP_DIR)
+              export APP_DIR=$APP_DIR
               export SMTP_SMARTHOST=$(SMTP_SMARTHOST)
               export SMTP_FROM=$(SMTP_FROM)
               export SMTP_USERNAME=$(SMTP_USERNAME)
