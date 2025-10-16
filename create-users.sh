@@ -10,7 +10,7 @@ echo "Creating role for Filebeat service..."
 curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_security/role/${ELASTIC_FILEBEAT_USER}_role" \
   --cacert /certs/ca.crt \
   -H 'Content-Type: application/json' -d '{
-    "cluster": ["manage_index_templates", "monitor", "read_ilm"],
+    "cluster": ["manage_index_templates", "monitor", "read_ilm", "manage_ilm"],
     "indices": [
       {
         "names": ["server-app-*"],
