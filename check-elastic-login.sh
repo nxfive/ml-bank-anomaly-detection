@@ -16,7 +16,7 @@ echo "Login successful - starting ${SERVICE}..."
 if [ "$SERVICE" = "kibana" ]; then
   exec /usr/local/bin/kibana-docker "$@"
 elif [ "$SERVICE" = "filebeat" ]; then
-  exec /usr/share/filebeat/filebeat -e -strict.perms=false
+  exec /usr/share/filebeat/filebeat -c /usr/share/filebeat/filebeat.yml -e -strict.perms=false
 else
   echo "Unknown service. Exiting... "
   exit 1
