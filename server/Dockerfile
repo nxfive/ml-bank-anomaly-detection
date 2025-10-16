@@ -24,6 +24,11 @@ FROM python:3.12-slim
 
 WORKDIR /backend
 
+RUN apt-get update &&\
+    apt-get install -y --no-install-recommends \
+    curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 COPY --from=builder /backend/venv ./venv
 COPY --from=builder /backend/server ./server
 COPY --from=builder /backend/src ./src
