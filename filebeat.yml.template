@@ -33,3 +33,4 @@ output.elasticsearch:
   username: ${ELASTIC_FILEBEAT_USER}
   password: ${ELASTIC_FILEBEAT_PASS}
   ssl.certificate_authorities: ["/usr/share/filebeat/certs/ca.crt"]
+  ssl.verification_mode: full
