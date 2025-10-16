@@ -2,7 +2,7 @@
 
 set -e
 
-while ! curl -sf "${ELASTIC_HOST}/-/ready" --cacert "${ELASTIC_CACERT}" > /dev/null; do
+while ! curl -sf -u "${ELASTIC_USER}:${ELASTIC_PASS}" "${ELASTIC_HOST}" --cacert "${ELASTIC_CACERT}" > /dev/null; do
   echo "Waiting for Elasticsearch..."
   sleep 2
 done
