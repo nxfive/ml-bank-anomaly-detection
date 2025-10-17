@@ -36,3 +36,23 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X POST "${ELASTIC_HOST}/_security/use
     \"password\": \"${ELASTIC_KIBANA_PASS}\"
   }"
 echo "Kibana password updated"
+
+echo "Creating index template for server-app..."
+curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_index_template/server-app" \
+  --cacert /certs/ca.crt \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "index_patterns": ["server-app*"],
+    "data_stream": {},
+    "template": {
+      "mappings": {
+        "properties": {
+          "timestamp": { "type": "date" },
+          "message": { "type": "text" },
+          "service": { "type": "keyword" },
+          "url": { "type": "keyword" }
+        }
+      }
+    }
+  }'
+echo "Index template for server-app created"
