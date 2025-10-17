@@ -145,7 +145,7 @@ stages:
 
               rm -rf /home/$(VPS_USER)/$APP_DIR/elk/filebeat.yml.template
               rm -rf /home/$(VPS_USER)/$APP_DIR/alertmanager/alertmanager.yml.template
-
+              docker logout ghcr.io
               echo "$(GHCR_TOKEN)" | docker login ghcr.io -u $(GHCR_USERNAME) --password-stdin
               docker compose -f /home/$(VPS_USER)/$APP_DIR/docker-compose.yml pull
               docker compose -f /home/$(VPS_USER)/$APP_DIR/docker-compose.yml up -d --build --force-recreate
