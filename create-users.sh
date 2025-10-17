@@ -13,7 +13,7 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_security/role
     "cluster": ["manage_index_templates", "monitor", "read_ilm", "manage_ilm"],
     "indices": [
       {
-        "names": ["server-app-*"],
+        "names": ["server-app", "server-app-*"],
         "privileges": ["write","create_index","manage", "view_index_metadata"]
       }
     ]
