@@ -14,7 +14,7 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_security/role
     "indices": [
       {
         "names": ["server-app-*"],
-        "privileges": ["write","create_index","manage"]
+        "privileges": ["write","create_index","manage", "view_index_metadata"]
       }
     ]
   }'
