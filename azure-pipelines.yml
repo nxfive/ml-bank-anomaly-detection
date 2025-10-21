@@ -111,15 +111,15 @@ stages:
               mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/certs
               mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/init
               mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/entrypoint
-              mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/templates/filebeat
-              mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/templates/kibana
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/filebeat
+              mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/kibana
             "
             scp -P $(SSH_PORT) docker-compose.deploy.yml config.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
             scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
             scp -P $(SSH_PORT) alertmanager.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
             scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
-            scp -P $(SSH_PORT) filebeat.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/templates/filebeat/
-            scp -P $(SSH_PORT) kibana.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/templates/kibana/
+            scp -P $(SSH_PORT) filebeat.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/filebeat/
+            scp -P $(SSH_PORT) kibana.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/kibana/
             scp -P $(SSH_PORT) generate-certs.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/certs/
             scp -P $(SSH_PORT) create-users.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/init/
             scp -P $(SSH_PORT) check-elastic-login.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/entrypoint/
@@ -149,8 +149,8 @@ stages:
 
               mv /home/$(VPS_USER)/$APP_DIR/docker-compose.deploy.yml /home/$(VPS_USER)/$APP_DIR/docker-compose.yml
 
-              rm -rf /home/$(VPS_USER)/$APP_DIR/elk/filebeat.yml.template
-              rm -rf /home/$(VPS_USER)/$APP_DIR/elk/kibana.yml.template
+              rm -rf /home/$(VPS_USER)/$APP_DIR/elk/filebeat/filebeat.yml.template
+              rm -rf /home/$(VPS_USER)/$APP_DIR/elk/kibana/kibana.yml.template
               rm -rf /home/$(VPS_USER)/$APP_DIR/alertmanager/alertmanager.yml.template
               docker logout ghcr.io
               echo "$(GHCR_TOKEN)" | docker login ghcr.io -u $(GHCR_USERNAME) --password-stdin
