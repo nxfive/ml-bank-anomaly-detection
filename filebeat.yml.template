@@ -5,32 +5,45 @@ setup.ilm.rollover_alias: "server-app"
 setup.ilm.pattern: "{now/d}-000001"
 setup.template.enabled: true
 setup.template.name: "server-app"
-setup.template.pattern: "server-app-*"
+setup.template.pattern: "server-app"
 
+logging.level: debug
+logging.selectors: ["*"]
 logging.metrics.enabled: false
 xpack.security.enabled: false
 xpack.monitoring.enabled: false
 
-logging:
-  level: info
-  to_files: false
-
 filebeat.inputs:
-  - type: log
+  - type: filestream
+    id: server-filebeat-input   
     enabled: true
     scan_frequency: 1s
     paths:
-      - /usr/share/filebeat/logs/*.log   
-    json.keys_under_root: true
-    json.add_error_key: true
-    json.message_key: message
+      - /usr/share/filebeat/logs/app/*.log
+    processors:
+      - decode_json_fields:
+          fields: ["message"]
+          process_array: false
+          max_depth: 1
+          target: ""
+          overwrite_keys: true
+      - rename:
+          fields:
+            - from: "client"
+              to: "client.ip"      
+            - from: "service"
+              to: "my.service"     
+          ignore_missing: true
+          overwrite: true
     fields:
-      service: server                  
+      service.name: server
     fields_under_root: true
 
 output.elasticsearch:
-  hosts: [${ELASTIC_HOST}]
-  username: ${ELASTIC_FILEBEAT_USER}
-  password: ${ELASTIC_FILEBEAT_PASS}
+  hosts: ["${ELASTIC_HOST}"]
+  username: "${ELASTIC_FILEBEAT_USER}"
+  password: "${ELASTIC_FILEBEAT_PASS}"
+  ilm.enabled: true
+  ilm.rollover_alias: "server-app"
   ssl.certificate_authorities: ["/usr/share/filebeat/certs/ca.crt"]
   ssl.verification_mode: full
