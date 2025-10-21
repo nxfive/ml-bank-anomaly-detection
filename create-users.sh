@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-until curl -sk -u "elastic:${ELASTIC_PASSWORD}" ${ELASTIC_HOST} > /dev/null; do
+until curl -sf -u "elastic:${ELASTIC_PASSWORD}" ${ELASTIC_HOST} --cacert /certs/ca.crt > /dev/null; do
   echo "Waiting for Elasticsearch..."
   sleep 5
 done
@@ -13,8 +13,12 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_security/role
     "cluster": ["manage_index_templates", "monitor", "read_ilm", "manage_ilm"],
     "indices": [
       {
-        "names": ["server-app", "server-app-*"],
-        "privileges": ["write","create_index","manage", "view_index_metadata"]
+        "names": ["server-app*"],
+        "privileges": ["write","create_index","manage","view_index_metadata"]
+      },
+      {
+        "names": ["filebeat-*"],
+        "privileges": ["write","create_index","manage","view_index_metadata","auto_configure"]
       }
     ]
   }'
@@ -29,14 +33,6 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X POST "${ELASTIC_HOST}/_security/use
   }"
 echo "Filebeat user created"
 
-echo "Updating password for Kibana service..."
-curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X POST "${ELASTIC_HOST}/_security/user/${ELASTIC_KIBANA_USER}/_password" \
-  --cacert /certs/ca.crt \
-  -H "Content-Type: application/json" -d "{
-    \"password\": \"${ELASTIC_KIBANA_PASS}\"
-  }"
-echo "Kibana password updated"
-
 echo "Creating index template for server-app..."
 curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_index_template/server-app" \
   --cacert /certs/ca.crt \
@@ -47,7 +43,7 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_index_templat
     "template": {
       "mappings": {
         "properties": {
-          "timestamp": { "type": "date" },
+          "@timestamp": { "type": "date" },
           "message": { "type": "text" },
           "service": { "type": "keyword" },
           "url": { "type": "keyword" }
@@ -56,3 +52,11 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_index_templat
     }
   }'
 echo "Index template for server-app created"
+
+echo "Updating password for Kibana service..."
+curl -sf -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ELASTIC_HOST}/_security/user/${ELASTIC_KIBANA_USER}/_password" \
+  --cacert /certs/ca.crt \
+  -H "Content-Type: application/json" -d "{
+    \"password\": \"${ELASTIC_KIBANA_PASS}\"
+  }"
+echo "Kibana password updated"
