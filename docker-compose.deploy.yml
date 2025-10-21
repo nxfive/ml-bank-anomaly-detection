@@ -2,17 +2,22 @@ services:
   server:
     image: ghcr.io/nxfive/ml-bank-anomaly-detection/server:latest
     volumes:
-      - /home/ubuntu/${APP_DIR}/logs:/logs
+      - ./logs:/backend/logs
     networks:
       - traefik-net
+    environment:
+      - ENV=prod
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     
   client:
     image: ghcr.io/nxfive/ml-bank-anomaly-detection/client:latest
     environment:
       - SERVER_HOST=server
       - SERVER_PORT=8000
-    depends_on:
-      - server
     entrypoint: ./entrypoint.sh
     labels:
       - "traefik.enable=true"
@@ -22,33 +27,51 @@ services:
       - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
       - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
       - "traefik.http.routers.client.middlewares=ratelimit"
+      - "traefik.http.services.client.loadbalancer.server.port=8501"
     networks:
       - traefik-net
 
   prometheus:
     image: prom/prometheus
     volumes:
-      - /home/ubuntu/${APP_DIR}/prometheus:/etc/prometheus
+      - ./prometheus:/etc/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - traefik-net
+    depends_on:
+      alertmanager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/ready || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
   alertmanager:
     image: prom/alertmanager
     volumes:
-      - /home/ubuntu/${APP_DIR}/alertmanager:/etc/alertmanager
+      - ./alertmanager:/etc/alertmanager
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
     networks:
       - traefik-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9093/-/ready || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
 
   grafana:
     image: grafana/grafana
     depends_on:
-      - prometheus
+      alertmanager:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
     volumes:
-      - /home/ubuntu/${APP_DIR}/grafana:/grafana
+      - ./grafana:/grafana
     entrypoint: ["/bin/bash", "/grafana/grafana-entrypoint.sh"]
     environment:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
@@ -60,38 +83,84 @@ services:
       - "traefik.http.routers.grafana.tls.certresolver=myresolver"
       - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
       - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
-      - "traefik.http.routers.grafana.middlewares=ratelimit"
       - "traefik.http.middlewares.grafana-auth.basicauth.users=admin:$$apr1$$Mbo6ax46$$YQ6.GD2JNjYJ0Wx4MRryC."
       - "traefik.http.routers.grafana.middlewares=grafana-auth,ratelimit"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     networks:
       - traefik-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     environment:
-      - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=/usr/share/elasticsearch/config/certs/elasticsearch.key
+      - xpack.security.http.ssl.certificate=/usr/share/elasticsearch/config/certs/elasticsearch.crt
+      - xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/ca.crt
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/elasticsearch.key
+      - xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/elasticsearch.crt
+      - xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/ca.crt
+      - discovery.type=single-node
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    mem_limit: 3g
+    deploy:
+      resources:
+        limits:
+          memory: 3g
     volumes:
-      - /home/ubuntu/${APP_DIR}/elk/certs:/usr/share/elasticsearch/config/certs:ro
+      - ./elk/certs:/usr/share/elasticsearch/config/certs:ro
     networks:
       - elk-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sfk -u elastic:${ELASTIC_PASSWORD} https://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  elastic-init:
+    image: curlimages/curl:latest
+    volumes:
+      - ./elk/init:/init:ro
+      - ./elk/certs:/certs:ro
+    environment:
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_FILEBEAT_USER=${ELASTIC_FILEBEAT_USER}
+      - ELASTIC_FILEBEAT_PASS=${ELASTIC_FILEBEAT_PASS}
+      - ELASTIC_KIBANA_USER=${ELASTIC_KIBANA_USER}
+      - ELASTIC_KIBANA_PASS=${ELASTIC_KIBANA_PASS}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - elk-net
+    entrypoint: ["/bin/sh", "/init/create-users.sh"]
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.12.0
     environment:
-      - ELASTICSEARCH_HOSTS=${ELASTIC_HOST}
-      - ELASTICSEARCH_USERNAME=${ELASTIC_USERNAME}
-      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
-      - ELASTICSEARCH_CA_CERT=/usr/share/kibana/config/certs/ca.crt
+      - SERVICE=kibana
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_USER=${ELASTIC_KIBANA_USER}
+      - ELASTIC_PASS=${ELASTIC_KIBANA_PASS}
+      - ELASTIC_CACERT=/usr/share/kibana/config/certs/ca.crt
+      - SERVER_PUBLICBASEURL=https://ml-bank-anomaly-detection.kibana.nxfive.pl
     volumes:
-      - /home/ubuntu/ml-bank-anomaly-detection/elk/certs:/usr/share/kibana/config/certs:ro
-    depends_on:
-      - elasticsearch
+      - ./elk/certs:/usr/share/kibana/config/certs:ro
+      - ./elk/entrypoint:/usr/share/kibana/config/entrypoint
+      - ./elk/init:/usr/share/kibana/config/init
+      - ./elk/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
     networks:
       - elk-net
       - traefik-net
@@ -102,18 +171,36 @@ services:
       - "traefik.http.routers.kibana.tls.certresolver=myresolver"
       - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
       - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
-      - "traefik.http.middlewares.kibana-auth.basicauth.users=admin:$$apr1$$Mbo6ax46$$YQ6.GD2JNjYJ0Wx4MRryC."
-      - "traefik.http.routers.kibana.middlewares=kibana-auth"
+      - "traefik.http.middlewares.kibana-auth.basicauth.users=admin:$$apr1$$Z0fmERsH$$pCRwlUmTycJ4im42iGb1K/"
+      - "traefik.http.routers.kibana.middlewares=kibana-auth,ratelimit"
+      - "traefik.http.services.kibana.loadbalancer.server.scheme=http"
+      - "traefik.http.services.kibana.loadbalancer.server.port=5601"
+    entrypoint: ["/bin/bash", "/usr/share/kibana/config/entrypoint/check-elastic-login.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.12.0
     user: root
     volumes:
-      - /home/ubuntu/${APP_DIR}/logs:/usr/share/filebeat/logs:ro
-      - /home/ubuntu/${APP_DIR}/elk/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /home/ubuntu/${APP_DIR}/elk/certs:/usr/share/filebeat/certs:ro
+      - ./logs:/usr/share/filebeat/logs/app:ro
+      - ./elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./elk/certs:/usr/share/filebeat/certs:ro
+      - ./elk/entrypoint:/usr/share/filebeat/init
+    environment:
+      - SERVICE=filebeat
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_USER=${ELASTIC_FILEBEAT_USER}
+      - ELASTIC_PASS=${ELASTIC_FILEBEAT_PASS}
+      - ELASTIC_CACERT=/usr/share/filebeat/certs/ca.crt
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "/usr/share/filebeat/init/check-elastic-login.sh"]
     networks:
       - elk-net
 
