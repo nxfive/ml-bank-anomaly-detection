@@ -1,9 +1,6 @@
 trigger:
   - main
 
-pool:
-  vmImage: 'ubuntu-latest'
-
 variables:
   - name: IMAGE_BACKEND
     value: ghcr.io/$(GHCR_USERNAME)/$(GHCR_REPO)/server
@@ -21,6 +18,8 @@ variables:
 stages:
 - stage: Test_App
   displayName: 'Run Unit Tests'
+  pool:
+    vmImage: 'ubuntu-latest'
   jobs:
   - job: Test
     steps:
@@ -42,6 +41,9 @@ stages:
         displayName: 'Run Tests'
 
 - stage: Build_and_Push
+  displayName: 'Build & Push Docker Image'
+  pool:
+    vmImage: 'ubuntu-latest'
   jobs:
   - job: Build
     steps:
@@ -66,6 +68,8 @@ stages:
       displayName: 'Build & Push Frontend'
 
 - stage: Deploy
+  pool:
+    vmImage: 'ubuntu-latest'
   dependsOn: Build_and_Push
   jobs:
     - job: Deploy
