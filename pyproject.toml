@@ -1,0 +1,57 @@
+[project]
+name = "ml-bank-anomaly-detection"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+
+[dependency-groups]
+build = [
+    "numpy==2.3.2",
+    "pandas==2.3.2",
+    "scikit-learn==1.7.1",
+    "pytest==8.4.2",
+    "PyYAML==6.0.2",
+    "pyarrow==21.0.0"
+]
+server = [
+    "fastapi==0.116.1",
+    "httpx==0.28.1",
+    "joblib==1.5.2",
+    "numpy==2.3.2",
+    "pandas==2.3.2",
+    "pyarrow==21.0.0",
+    "pydantic==2.11.7",
+    "pydantic_core==2.33.2",
+    "PyYAML==6.0.2",
+    "requests==2.32.5",
+    "scikit-learn==1.7.1",
+    "uvicorn==0.35.0",
+    "prometheus_client==0.23.1",
+    "psutil==7.1.0",
+    "python-json-logger==3.3.0",
+]
+client = [
+    "streamlit==1.49.1",
+]
+all = [
+    "fastapi==0.116.1",
+    "httpx==0.28.1",
+    "joblib==1.5.2",
+    "numpy==2.3.2",
+    "pandas==2.3.2",
+    "pyarrow==21.0.0",
+    "pydantic==2.11.7",
+    "pydantic_core==2.33.2",
+    "PyYAML==6.0.2",
+    "requests==2.32.5",
+    "scikit-learn==1.7.1",
+    "streamlit==1.49.1",
+    "uvicorn==0.35.0",
+    "pytest==8.4.2",
+    "prometheus_client==0.23.1",
+    "psutil==7.1.0",
+    "python-json-logger==3.3.0",
+]
