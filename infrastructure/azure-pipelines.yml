@@ -30,17 +30,15 @@ stages:
           versionSpec: '3.12'
           addToPath: true
 
-      - script: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - script: pip install --no-cache-dir uv
         displayName: 'Install Dependencies'
 
-      - script: python -m src.main
+      - script: bash $(Build.SourcesDirectory)/scripts/build.sh
         displayName: 'Build App'
 
       - script: |
           export ENV=dev
-          pytest -v
+          uv run --group build pytest -v
         displayName: 'Run Tests'
 
 - stage: Build_and_Push
@@ -54,14 +52,14 @@ stages:
       displayName: 'Login to GitHub Container Registry'
 
     - script: |
-        docker build -t $(IMAGE_BACKEND):$(TAG) -f server/Dockerfile .
+        docker build -t $(IMAGE_BACKEND):$(TAG) -f infrastructure/Dockerfile.server .
         docker push $(IMAGE_BACKEND):$(TAG)
         docker tag $(IMAGE_BACKEND):$(TAG) $(IMAGE_BACKEND):latest
         docker push $(IMAGE_BACKEND):latest
       displayName: 'Build & Push Backend'
 
     - script: |
-        docker build -t $(IMAGE_FRONTEND):$(TAG) -f client/Dockerfile .
+        docker build -t $(IMAGE_FRONTEND):$(TAG) -f infrastructure/Dockerfile.client .
         docker push $(IMAGE_FRONTEND):$(TAG)
         docker tag $(IMAGE_FRONTEND):$(TAG) $(IMAGE_FRONTEND):latest
         docker push $(IMAGE_FRONTEND):latest
@@ -114,15 +112,15 @@ stages:
               mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/filebeat
               mkdir -p /home/$(VPS_USER)/$APP_DIR/elk/kibana
             "
-            scp -P $(SSH_PORT) docker-compose.deploy.yml config.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
-            scp -P $(SSH_PORT) prometheus.yml alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
-            scp -P $(SSH_PORT) alertmanager.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
-            scp -P $(SSH_PORT) grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
-            scp -P $(SSH_PORT) filebeat.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/filebeat/
-            scp -P $(SSH_PORT) kibana.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/kibana/
-            scp -P $(SSH_PORT) generate-certs.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/certs/
-            scp -P $(SSH_PORT) create-users.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/init/
-            scp -P $(SSH_PORT) check-elastic-login.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/entrypoint/
+            scp -P $(SSH_PORT) infrastructure/docker-compose.deploy.yml scripts/config.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR
+            scp -P $(SSH_PORT) config/prometheus.yml config/alerts.yml $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/prometheus/
+            scp -P $(SSH_PORT) config/alertmanager.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/alertmanager/
+            scp -P $(SSH_PORT) scripts/grafana-entrypoint.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/grafana/
+            scp -P $(SSH_PORT) config/filebeat.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/filebeat/
+            scp -P $(SSH_PORT) config/kibana.yml.template $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/kibana/
+            scp -P $(SSH_PORT) scripts/generate-certs.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/certs/
+            scp -P $(SSH_PORT) scripts/create-users.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/init/
+            scp -P $(SSH_PORT) scripts/check-elastic-login.sh $(VPS_USER)@$(VPS_HOST):/home/$(VPS_USER)/$APP_DIR/elk/entrypoint/
 
             ssh -p $(SSH_PORT) $(VPS_USER)@$(VPS_HOST) << EOF
               export APP_DIR=$APP_DIR
