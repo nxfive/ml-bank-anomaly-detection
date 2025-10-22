@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from prometheus_client.parser import text_string_to_metric_families
-from server.run import app  
+from services.server.run import app  
 
 client = TestClient(app)
 
