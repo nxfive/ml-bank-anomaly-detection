@@ -8,17 +8,12 @@ RUN apt-get update && \
         gcc && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY server/ ./server
+COPY pyproject.toml uv.lock ./
+COPY services/server/ ./server
 COPY src/ ./src
-COPY models/ ./models
-COPY data/ ./data
-COPY config/ ./config
 
-RUN python -m venv ./venv
-ENV PATH="/backend/venv/bin:$PATH"
-
-RUN pip install --upgrade pip && pip install --no-cache-dir -r server/requirements.txt
-
+RUN pip install --no-cache-dir uv && \
+    uv sync --group server --frozen --no-dev
 
 FROM python:3.12-slim
 
@@ -29,16 +24,17 @@ RUN apt-get update &&\
     curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=builder /backend/venv ./venv
+COPY --from=builder /backend/.venv ./.venv
 COPY --from=builder /backend/server ./server
 COPY --from=builder /backend/src ./src
-COPY --from=builder /backend/models ./models
-COPY --from=builder /backend/data ./data
-COPY --from=builder /backend/config ./config
 
-ENV PATH="/backend/venv/bin:$PATH"
+COPY data/raw ./data/raw
+COPY config/elk_logger.yml ./config/elk_logger.yml
+COPY scripts/server-entrypoint.sh ./scripts/entrypoint.sh
+
+ENV VIRTUAL_ENV="/backend/.venv"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV APP_ENV=prod
 
-RUN mkdir -p /backend/logs
-
-ENTRYPOINT ["/bin/bash", "/backend/server/server-entrypoint.sh"]
+RUN mkdir -p /backend/models/metadata /backend/logs /backend/data/processed
+ENTRYPOINT ["/bin/bash", "/backend/scripts/entrypoint.sh"]
