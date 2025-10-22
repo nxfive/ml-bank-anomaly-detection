@@ -12,4 +12,4 @@ for i in {1..30}; do
 done
 
 echo "Starting Streamlit client..."
-streamlit run main.py --server.port 8501 --server.address 0.0.0.0
+streamlit run ./client/main.py --server.port 8501 --server.address 0.0.0.0
