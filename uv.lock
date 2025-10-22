@@ -385,12 +385,17 @@ all = [
     { name = "uvicorn" },
 ]
 build = [
+    { name = "fastapi" },
+    { name = "httpx" },
     { name = "numpy" },
     { name = "pandas" },
+    { name = "prometheus-client" },
+    { name = "psutil" },
     { name = "pyarrow" },
     { name = "pytest" },
     { name = "pyyaml" },
     { name = "scikit-learn" },
+    { name = "uvicorn" },
 ]
 client = [
     { name = "streamlit" },
@@ -436,12 +441,17 @@ all = [
     { name = "uvicorn", specifier = "==0.35.0" },
 ]
 build = [
+    { name = "fastapi", specifier = "==0.116.1" },
+    { name = "httpx", specifier = "==0.28.1" },
     { name = "numpy", specifier = "==2.3.2" },
     { name = "pandas", specifier = "==2.3.2" },
+    { name = "prometheus-client", specifier = "==0.23.1" },
+    { name = "psutil", specifier = "==7.1.0" },
     { name = "pyarrow", specifier = "==21.0.0" },
     { name = "pytest", specifier = "==8.4.2" },
     { name = "pyyaml", specifier = "==6.0.2" },
     { name = "scikit-learn", specifier = "==1.7.1" },
+    { name = "uvicorn", specifier = "==0.35.0" },
 ]
 client = [{ name = "streamlit", specifier = "==1.49.1" }]
 server = [
