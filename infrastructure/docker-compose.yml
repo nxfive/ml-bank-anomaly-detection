@@ -2,14 +2,14 @@ services:
   server:
     build:
       context: .
-      dockerfile: ./server/Dockerfile
+      dockerfile: ./Dockerfile.server
     ports:
       - 8000:8000
   
   client:
     build:
       context: .
-      dockerfile: ./client/Dockerfile
+      dockerfile: ./Dockerfile.client
     ports:
       - 8501:8501
     environment:
@@ -17,4 +17,3 @@ services:
       - SERVER_PORT=8000
     depends_on:
       - server
-    entrypoint: ./entrypoint.sh
