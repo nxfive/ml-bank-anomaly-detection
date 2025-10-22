@@ -18,10 +18,10 @@ RUN apt-get update && \
 COPY --from=builder /frontend/.venv ./.venv
 COPY --from=builder /frontend/client ./client
 
-COPY scripts/client-entrypoint.sh ./scripts/entrypoint.sh
+COPY scripts/client-entrypoint.sh ./client/entrypoint.sh
 
-ENV VIRTUAL_ENV="/client/.venv"
+ENV VIRTUAL_ENV="/frontend/.venv"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV APP_ENV=prod
 
-ENTRYPOINT ["/bin/bash", "/client/scripts/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/frontend/client/entrypoint.sh"]
