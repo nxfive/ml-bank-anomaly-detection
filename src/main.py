@@ -2,16 +2,12 @@ from src.data.data import read_data, data_transform
 from src.features.pipeline import run_features_pipeline
 from src.models.pipeline import run_if_pipeline, run_lof_pipeline
 from src.utils.utils import save_objects
-from src.utils.logger import setup_logging, get_logger
-
+from src.utils.logger import logger
 import pandas as pd
 import logging
-import warnings
-import os
 
 
 def main():
-    logger = get_logger(name="main")
     logger.info("Starting main pipeline...")
 
     df_raw = read_data()
@@ -56,11 +52,5 @@ def main():
 
 
 if __name__ == "__main__":
-    ENV = os.getenv("ENV", "dev")
-    
-    if ENV == "prod":
-        warnings.filterwarnings("ignore")
-    
-    setup_logging()  
     main()
     logging.shutdown()
