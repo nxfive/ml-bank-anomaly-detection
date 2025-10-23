@@ -4,13 +4,10 @@ import time
 import pandas as pd
 import yaml
 
-from src.utils.logger import get_logger, setup_logging
+from src.utils.logger import logger
 
 from .model_features import get_model_features
 from .models import model_if, model_lof
-
-setup_logging()
-logger = get_logger(name="models")
 
 
 model_mapper = {model_if: "isolation_forest", model_lof: "local_outlier_factor"}
