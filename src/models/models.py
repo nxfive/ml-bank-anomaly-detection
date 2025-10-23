@@ -8,10 +8,7 @@ from .utils import save_model_with_metadata
 from src.utils.utils import save_objects
 
 import logging
-from src.utils.logger import get_logger, setup_logging
-
-setup_logging()
-logger = get_logger(name="models")
+from src.utils.logger import logger
 
 
 def model_if(
