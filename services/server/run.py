@@ -66,9 +66,9 @@ async def log_requests(request: Request, call_next: Callable) -> Response:
 
     return response
 
+app = create_app()
 
 if __name__ == "__main__":
-    app = create_app()
     uvicorn.run(
         app,
         host="0.0.0.0",
