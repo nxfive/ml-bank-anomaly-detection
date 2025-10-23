@@ -1,7 +1,7 @@
 import time
 
 import pandas as pd
-from src.utils.logger import get_logger, setup_logging
+from src.utils.logger import logger
 
 from .features import (
     data_splitting,
@@ -15,9 +15,6 @@ from .utils import (
     add_time_since_last_transaction,
     add_unusual_usage_features,
 )
-
-setup_logging()
-logger = get_logger(name="features")
 
 
 def run_features_pipeline(
