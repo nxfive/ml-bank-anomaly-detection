@@ -7,13 +7,19 @@ from sklearn.neighbors import LocalOutlierFactor
 from .utils import save_model_with_metadata
 from src.utils.utils import save_objects
 
+import logging
+from src.utils.logger import get_logger, setup_logging
+
+setup_logging()
+logger = get_logger(name="models")
+
 
 def model_if(
     train_df: pd.DataFrame,
     test_df: pd.DataFrame,
     cat_features: list[str],
     contamination: float = 0.05,
-    random_state: int = 42
+    random_state: int = 42,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Fit Isolation Forest model on training data and predict anomaly for train and test sets.
@@ -34,9 +40,7 @@ def model_if(
     train_df["isFraud"] = (train_preds == -1).astype(int)
     test_df["isFraud"] = (test_preds == -1).astype(int)
 
-    save_objects(
-        ordinal_encoder=orde
-    )
+    save_objects(ordinal_encoder=orde)
 
     save_model_with_metadata(
         model=iso_forest,
@@ -55,7 +59,7 @@ def model_lof(
     test_df: pd.DataFrame,
     cat_features: list[str],
     num_features: list[str],
-    contamination: float = 0.05
+    contamination: float = 0.05,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Fit LOF model on training data and predict anomaly for train and test sets.
@@ -85,19 +89,42 @@ def model_lof(
     train_encoded[num_features] = rbs.fit_transform(train_encoded[num_features])
     test_encoded[num_features] = rbs.transform(test_encoded[num_features])
 
+    # === debug ===
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Comparing columns and data types before LOF...")
+
+        missing_cols = [
+            col for col in train_encoded.columns if col not in test_encoded.columns
+        ]
+        if missing_cols:
+            logger.debug(f"Missing columns in test_encoded: {missing_cols}")
+
+        # Check column order
+        same_order = all(train_encoded.columns == test_encoded.columns)
+        logger.debug(f"Column order identical: {same_order}")
+
+        # Check data types
+        same_dtype = all(
+            train_encoded[col].dtype == test_encoded[col].dtype
+            for col in train_encoded.columns
+        )
+        logger.debug(f"Column data types identical: {same_dtype}")
+    # ========
+
     # fit and predict
+    train_X = train_encoded.values.astype(float)
+    test_X = test_encoded.values.astype(float)
+
     lof = LocalOutlierFactor(contamination=contamination, novelty=True)
-    lof.fit(train_encoded)
-    train_preds = lof.predict(train_encoded)
-    test_preds = lof.predict(test_encoded)
+    lof.fit(train_X)
+
+    train_preds = lof.predict(train_X)
+    test_preds = lof.predict(test_X)
 
     train_encoded["isFraud"] = (train_preds == -1).astype(int)
     test_encoded["isFraud"] = (test_preds == -1).astype(int)
 
-    save_objects(
-        one_hot_encoder=ohe,
-        robust_scaler=rbs
-    )
+    save_objects(one_hot_encoder=ohe, robust_scaler=rbs)
 
     save_model_with_metadata(
         model=lof,
