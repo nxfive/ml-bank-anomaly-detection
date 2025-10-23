@@ -20,7 +20,6 @@ def save_objects(**kwargs):
             path = os.path.join(MODELS_DIR, f"{name}.pkl")
             with open(path, "wb") as f:
                 pickle.dump(obj, f)
-        print(f"Saved {name} -> {path}")
 
 
 def load_model_metadata(model_name: str) -> dict[str, Any]:
