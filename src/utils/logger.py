@@ -3,35 +3,62 @@ import logging.config
 import os
 import yaml
 from datetime import datetime
+from .settings import settings
 
-from .paths import CONFIG_DIR, ELK_CONFIG_DIR, LOGS_DIR, ELK_LOGS_DIR
+
+class RequestLoggerAdapter(logging.LoggerAdapter):
+    """Ensures standard HTTP request fields exist in 'extra'."""
+
+    def process(self, msg: str, kwargs: dict) -> tuple[str, dict]:
+        """
+        Add default HTTP request fields to the log record.
+        """
+        extra = kwargs.get('extra', {})
+        extra.setdefault('method', '')
+        extra.setdefault('url', '')
+        extra.setdefault('status', '')
+        extra.setdefault('duration', '')
+        extra.setdefault('client', '')
+        kwargs['extra'] = extra
+        return msg, kwargs
 
 
-def setup_logging(default_level=logging.INFO):
-    env = os.getenv("ENV", "dev")
+def setup_logging():
+    """
+    Configure logging for the application.
 
-    os.makedirs(LOGS_DIR, exist_ok=True)
-    os.makedirs(ELK_LOGS_DIR, exist_ok=True)
+    Loads logging settings from a logger config file if it exists, 
+    otherwise uses basic logging with a default level. 
+    """
+    os.makedirs(settings.LOG_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y-%m-%d")
+    log_filename = os.path.join(settings.LOG_DIR, f"log_{timestamp}.log")
 
-    if env == "prod":
-        config_path = os.path.join(ELK_CONFIG_DIR, "elk_logger.yml")
-    else:
-        config_path = os.path.join(CONFIG_DIR, "logger.yml")
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_filename = os.path.join(LOGS_DIR, f"log_{timestamp}.log")
-
-    if os.path.exists(config_path):
-        with open(config_path, "r") as f:
+    if os.path.exists(settings.LOG_CONFIG_FILE):
+        with open(settings.LOG_CONFIG_FILE) as f:
             config = yaml.safe_load(f)
 
-        file_handler = config.get("handlers", {}).get("file")
-        if file_handler is not None:
-            file_handler["filename"] = log_filename
-
+        if "handlers" in config and "file" in config["handlers"]:
+            config["handlers"]["file"]["filename"] = log_filename
+        
         logging.config.dictConfig(config)
     else:
-        logging.basicConfig(level=default_level)
+        logging.basicConfig(level=settings.LOGGING_LEVEL)
 
 
-def get_logger(name: str) -> logging.Logger:
-    return logging.getLogger(name)
+def get_logger() -> logging.Logger:
+    """
+    Return a configured logger.
+
+    Uses a RequestLoggerAdapter in dev environment, 
+    otherwise returns a standard logger.
+    """
+    base_logger = logging.getLogger("app")
+    if settings.ENV == "dev":
+        return RequestLoggerAdapter(base_logger, {})
+    else:
+        return base_logger
+
+
+setup_logging()
+logger = get_logger()
