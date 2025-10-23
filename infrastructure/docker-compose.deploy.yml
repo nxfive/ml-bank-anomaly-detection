@@ -18,7 +18,6 @@ services:
     environment:
       - SERVER_HOST=server
       - SERVER_PORT=8000
-    entrypoint: ./entrypoint.sh
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.client.rule=Host(`ml-bank-anomaly-detection.nxfive.pl`)"
@@ -166,12 +165,13 @@ services:
       - traefik-net
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik-net"
       - "traefik.http.routers.kibana.rule=Host(`ml-bank-anomaly-detection.kibana.nxfive.pl`)"
       - "traefik.http.routers.kibana.entrypoints=websecure"
       - "traefik.http.routers.kibana.tls.certresolver=myresolver"
       - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
       - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
-      - "traefik.http.middlewares.kibana-auth.basicauth.users=admin:$$apr1$$Z0fmERsH$$pCRwlUmTycJ4im42iGb1K/"
+      - "traefik.http.middlewares.kibana-auth.basicauth.users=admin:$$apr1$$MUakAp3T$$JRb1s39Ust.i5xGv314ZR1"
       - "traefik.http.routers.kibana.middlewares=kibana-auth,ratelimit"
       - "traefik.http.services.kibana.loadbalancer.server.scheme=http"
       - "traefik.http.services.kibana.loadbalancer.server.port=5601"
