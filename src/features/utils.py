@@ -84,7 +84,7 @@ def add_time_since_last_transaction(df: pd.DataFrame) -> pd.DataFrame:
 
     ts_list = []
     for _, group in df.groupby("AccountID"):
-        diff_seconds = group.index.to_series().diff().dt.total_seconds()
+        diff_seconds = group.index.to_series().diff().dt.total_seconds().copy()
         diff_seconds.iloc[0] = 0
         ts_list.append(diff_seconds)
 
