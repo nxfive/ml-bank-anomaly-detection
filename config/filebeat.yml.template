@@ -31,8 +31,6 @@ filebeat.inputs:
           fields:
             - from: "client"
               to: "client.ip"      
-            - from: "service"
-              to: "my.service"     
           ignore_missing: true
           overwrite: true
     fields:
