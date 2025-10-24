@@ -32,7 +32,7 @@ def setup_logging():
     """
     os.makedirs(settings.LOG_DIR, exist_ok=True)
     timestamp = datetime.now().strftime("%Y-%m-%d")
-    log_filename = os.path.join(settings.LOG_DIR, f"log_{timestamp}.log")
+    log_filename = os.path.join(settings.LOG_DIR, "app.log" if settings.ENV=="prod" else f"log_{timestamp}.log")
 
     if os.path.exists(settings.LOG_CONFIG_FILE):
         with open(settings.LOG_CONFIG_FILE) as f:
