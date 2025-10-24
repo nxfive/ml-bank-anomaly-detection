@@ -24,44 +24,110 @@ Includes a **FastAPI backend** for prediction and a **Streamlit frontend** for i
 
 ---
 
+## Logging
+
+- Log collection with Filebeat
+- Centralized storage and search with Elasticsearch
+- Visualization and analysis with Kibana
+- Automatic log rotation with logrotate
+
+---
+
+## Security
+
+- **Basic Authentication:** Access to Grafana is protected with basic authentication. 
+- **Isolated Docker Network:** Kibana, Elasticsearch, and Filebeat run on a separate Docker network and communicate securely using TLS certificates.  
+- **Firewall Restrictions:** The server firewall only allows external traffic to the main application, Kibana, and Grafana. All other ports are blocked.  
+- **Custom SSH Port:** SSH access is configured on a non-default port to reduce automated attacks.  
+- **Rate Limiting:** Rate limits are applied to protect services from abuse or brute-force attempts.  
+
+---
+
 ## Tech Stack
 
 - **Backend:** FastAPI, Numpy, Pandas, Scikit-learn
 - **Frontend:** Streamlit
 - **Testing:** Pytest
-- **Deployment:** Docker, Azure DevOps
+- **Deployment:** Docker, Azure DevOps, Traefik
 - **Monitoring:** Prometheus, Grafana, Alertmanager
+- **Logging:** Elasticsearch, Filebeat, Kibana, Logrotate
 
 ---
+
+## System Architecture
+
+
+                                ┌───────────────┐
+                                │   Client      │
+                                └───────┬───────┘
+                                        │ [HTTPS + firewall]
+                                        ▼
+                              ┌─────────────────────┐
+                              │     Traefik         │
+                              │ (Reverse Proxy)     │
+                              │                     │
+                              └──────────┬──────────┘
+                                         │ [HTTP]
+                                         ▼
+                        ┌───────────────────┬───────────────────────┐
+                   [Basic Auth]             │                       │
+                        ▼                   ▼                       ▼              
+                   ┌─────────────┐   ┌─────────────┐         ┌─────────────┐  
+                   │  Grafana    │   │   Kibana    │         │  App UI     │  
+                   │             │   │             │         │             │
+                   └─────────────┘   └─────────────┘         └─────────────┘  
+                           │                   │                     │
+                           │[HTTP]           [HTTPS]                 │ [HTTP]
+                           ▼                   ▼                     │      
+    ┌─────────────┐      ┌─────────────┐   ┌──────────────┐          │
+    │Alertmanager │[HTTP]│ Prometheus  │   │Elasticsearch │          │
+    │             │ ◀─   │             │   │              │          │
+    └─────────────┘      └─────────────┘   └──────────────┘          │
+                             │                   ▲                   │
+                             │[HTTP]           [HTTPS]               │
+                             │                   │                   │
+                             │          ┌─────────────┐              │
+                             │          │  Filebeat   │              │
+                             │          │             │              │
+                             │          └─────────────┘              │
+                             │                │[HTTP]                │
+                             ▼                ▼                      ▼
+                             ┴────────────────┴──────────────────────┴
+                                              ▼
+                                       ┌─────────────┐
+                                       │   Server    |
+                                       │ (backend)   |
+                                       │             │
+                                       └─────────────┘
+
+
+
 ## Quick Start
 #### 1. Clone the repository
 ```bash
 git clone https://github.com/nxfive/ml-bank-anomaly-detection.git
 cd ml-bank-anomaly-detection
 ```
-#### 2. Create a virtual environment and install dependencies
-```bash
-python -m venv .venv
-source .venv/bin/activate  # [Linux/Mac]
-.venv\Scripts\activate     # [Windows]
 
-pip install -r requirements.txt
+#### 2. Install uv & sync dependencies
+```bash
+pip install uv
+uv sync
 ```
 
 #### 3. Build
 ```bash
-python -m src.main
+bash ./scripts/build.sh
 ```
 
 #### 4. Test
 ```bash
-export ENV=dev
-pytest -v
+bash ./scripts/test.sh
 ```
 
 #### 5. Start FastAPI backend
 ```bash
-python -m server.run
+bash ./scripts/server.sh
 ```
 
 * Swagger UI: http://127.0.0.1:8000/docs
@@ -69,10 +135,32 @@ python -m server.run
 
 #### 6. Start Streamlit frontend
 ```bash
-streamlit run client/main.py  
+bash ./scripts/client.sh
+```
+---
+### Run project
+```
+bash ./run.sh
 ```
 ---
 ### Run with Docker
 ```bash
 docker-compose -f docker-compose.yml up --build
 ```
+
+
+## Screenshots
+
+### Dashboard
+![App UI](docs/screenshot-models.png)
+![App UI](docs/screenshot-prediction.png)
+![App UI](docs/screenshot-transactions.png)
+
+### Grafana Metrics
+![Grafana Metrics](docs/screenshot-grafana.png)
+### Kibana Logs
+![Kibana Logs](docs/screenshot-kibana.png)
+### Logrotate
+![Logrotate](docs/screenshot-logrotate.png)
+### Test Coverage
+![Test Coverage](docs/screenshot-tests-coverage.png)
