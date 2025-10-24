@@ -23,9 +23,9 @@ services:
       - "traefik.http.routers.client.rule=Host(`ml-bank-anomaly-detection.nxfive.pl`)"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=myresolver"
-      - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
-      - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
-      - "traefik.http.routers.client.middlewares=ratelimit"
+      - "traefik.http.middlewares.client-ratelimit.ratelimit.average=200"
+      - "traefik.http.middlewares.client-ratelimit.ratelimit.burst=100"
+      - "traefik.http.routers.client.middlewares=client-ratelimit"
       - "traefik.http.services.client.loadbalancer.server.port=8501"
     networks:
       - traefik-net
@@ -80,10 +80,10 @@ services:
       - "traefik.http.routers.grafana.rule=Host(`ml-bank-anomaly-detection.grafana.nxfive.pl`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls.certresolver=myresolver"
-      - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
-      - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
+      - "traefik.http.middlewares.grafana-ratelimit.ratelimit.average=200"
+      - "traefik.http.middlewares.grafana-ratelimit.ratelimit.burst=100"
       - "traefik.http.middlewares.grafana-auth.basicauth.users=admin:$$apr1$$Mbo6ax46$$YQ6.GD2JNjYJ0Wx4MRryC."
-      - "traefik.http.routers.grafana.middlewares=grafana-auth,ratelimit"
+      - "traefik.http.routers.grafana.middlewares=grafana-auth,grafana-ratelimit"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     networks:
       - traefik-net
@@ -155,6 +155,7 @@ services:
       - ELASTIC_PASS=${ELASTIC_KIBANA_PASS}
       - ELASTIC_CACERT=/usr/share/kibana/config/certs/ca.crt
       - SERVER_PUBLICBASEURL=https://ml-bank-anomaly-detection.kibana.nxfive.pl
+      - NODE_ENV=production
     volumes:
       - ./elk/certs:/usr/share/kibana/config/certs:ro
       - ./elk/entrypoint:/usr/share/kibana/config/entrypoint
@@ -169,10 +170,9 @@ services:
       - "traefik.http.routers.kibana.rule=Host(`ml-bank-anomaly-detection.kibana.nxfive.pl`)"
       - "traefik.http.routers.kibana.entrypoints=websecure"
       - "traefik.http.routers.kibana.tls.certresolver=myresolver"
-      - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
-      - "traefik.http.middlewares.ratelimit.ratelimit.burst=25"
-      - "traefik.http.middlewares.kibana-auth.basicauth.users=admin:$$apr1$$MUakAp3T$$JRb1s39Ust.i5xGv314ZR1"
-      - "traefik.http.routers.kibana.middlewares=kibana-auth,ratelimit"
+      - "traefik.http.middlewares.kibana-ratelimit.ratelimit.average=300"
+      - "traefik.http.middlewares.kibana-ratelimit.ratelimit.burst=150"
+      - "traefik.http.routers.kibana.middlewares=kibana-ratelimit@docker"
       - "traefik.http.services.kibana.loadbalancer.server.scheme=http"
       - "traefik.http.services.kibana.loadbalancer.server.port=5601"
     entrypoint: ["/bin/bash", "/usr/share/kibana/config/entrypoint/check-elastic-login.sh"]
