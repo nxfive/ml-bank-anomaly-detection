@@ -2,30 +2,35 @@ version: 1
 
 formatters:
   json:
-    "()": pythonjsonlogger.jsonlogger.JsonFormatter
-    format: "%(asctime)s %(name)s %(levelname)s %(module)s %(message)s"
+    "()": services.server.formatter.CleanUvicornFormatter
+    format: "%(asctime)s %(name)s %(levelname)s %(message)s %(method)s %(url)s %(status)s %(duration)s" 
 
 handlers:
   console:
     class: logging.StreamHandler
     formatter: json
     level: INFO
+
   file:
     class: logging.FileHandler
     formatter: json
     level: INFO
-    filename: "/logs/app.log"  
-    
+    encoding: utf-8
+
 loggers:
+  uvicorn.error:
+    handlers: [console, file]
+    level: INFO
+    propagate: no
+  uvicorn.access:
+    handlers: [console, file]
+    level: INFO
+    propagate: no
+  fastapi:
+    handlers: [console, file]
+    level: INFO
+    propagate: no
   main:
-    handlers: [console, file]
-    level: INFO
-    propagate: no
-  features:
-    handlers: [console, file]
-    level: INFO
-    propagate: no
-  models:
     handlers: [console, file]
     level: INFO
     propagate: no
