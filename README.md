@@ -1,22 +1,89 @@
-# Bank Anomaly Detection 
+# 🚀 Production-Ready Bank Anomaly Detection System <br>(Anomaly Models + FastAPI + Streamlit + Monitoring + Logging)
 
-Detect suspicious bank transactions using Isolation Forest and Local Outlier Factor models.<br> 
-Includes a **FastAPI backend** for prediction and a **Streamlit frontend** for interactive UI.
+This project demonstrates how to design and implement a production-ready anomaly detection system for bank transactions, covering the full lifecycle — from data preprocessing and feature engineering, through model execution and orchestration, to serving, monitoring, and observability.
+
+The system focuses on unsupervised fraud detection using **Isolation Forest** and **Local Outlier Factor**.
 
 [![Kaggle Dataset](https://img.shields.io/badge/Kaggle-Dataset-blue?logo=kaggle)](https://www.kaggle.com/code/nxfiv3/anomaly-detection-bank-transactions-nxfiv3)
 
+
+## 🎯 Project Goal
+
+The goal of this project was to build a clean, extensible, and production-oriented anomaly detection pipeline, where:
+
+- Feature engineering is explicit and designed to be data-leakage safe
+- Model execution is generic and configuration-driven
+- Orchestration logic is kept separate from model implementations
+- Serving, monitoring, and logging are part of the core system
+
+
+## 🌊 Project Flow
+
+The system is organized into explicit pipelines, each responsible for one part of the anomaly detection lifecycle.
+
+1️⃣ Data Ingestion & Transformation
+
+- Raw transaction data is loaded from the source
+- Initial data transformations are applied
+- A clean input for feature engineering is prepared for feature engineering
+
+
+2️⃣ Feature Engineering Pipeline
+
+🔹 Core Feature Processing
+
+Applied to the full dataset before splitting:
+
+- Feature extraction is performed
+- Feature transformation is applied
+- Features without data leakage risk are created
+
+🔹 Post-Split Feature Engineering
+
+After train/test split:
+
+- Rolling features are added
+- Group-based features are added
+- Unusual usage detection features are created
+- Time since last transaction features are computed
+
+
+3️⃣ Model Execution Pipeline (Anomaly Detection)
+
+🔹 Generic Model Orchestration
+
+- Model-specific features are prepared
+- Parameters are loaded from configuration (config.yml)
+- Only required dependencies are injected into the model
+
+
+4️⃣ Ensemble Logic (Consensus Fraud Detection)
+
+After model execution:
+
+- Predictions from Isolation Forest and Local Outlier Factor are merged
+- A transaction is marked as suspicious only if both models agree
+
+
+🌐 Serving Layer
+
+🔹 FastAPI Backend
+
+- Prediction endpoints are exposed
+- Available models can be queried
+- Single-model or combined inference is supported
+
+
+🔹 Streamlit Frontend
+
+- An interactive UI for transaction input is provided
+- Real-time anomaly checks are performed
+- Model decisions are presented transparently
+
+
 ---
-## Features
 
-- View available models and transactions via API
-- Predict transactions using a single model or both models simultaneously
-- Interactive Streamlit interface for entering transaction data and checking for fraud
-- Data preprocessing and feature engineering steps included
-- Tested with Pytest (API endpoints + core /src modules)
-
----
-
-## Monitoring
+## 📊 Monitoring
 
 - Metrics collection with Prometheus
 - Dashboards and visualizations with Grafana
@@ -24,7 +91,7 @@ Includes a **FastAPI backend** for prediction and a **Streamlit frontend** for i
 
 ---
 
-## Logging
+## 📝 Logging
 
 - Log collection with Filebeat
 - Centralized storage and search with Elasticsearch
@@ -33,7 +100,7 @@ Includes a **FastAPI backend** for prediction and a **Streamlit frontend** for i
 
 ---
 
-## Security
+## 🔒 Security
 
 - **Basic Authentication:** Access to Grafana is protected with basic authentication. 
 - **Isolated Docker Network:** Kibana, Elasticsearch, and Filebeat run on a separate Docker network and communicate securely using TLS certificates.  
@@ -43,7 +110,7 @@ Includes a **FastAPI backend** for prediction and a **Streamlit frontend** for i
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 - **Backend:** FastAPI, Numpy, Pandas, Scikit-learn
 - **Frontend:** Streamlit
@@ -54,7 +121,7 @@ Includes a **FastAPI backend** for prediction and a **Streamlit frontend** for i
 
 ---
 
-## System Architecture
+## 🖥️ System Architecture
 
 
                                 ┌───────────────┐
@@ -101,7 +168,7 @@ Includes a **FastAPI backend** for prediction and a **Streamlit frontend** for i
 
 
 
-## Quick Start
+## ⚡ Quick Start
 #### 1. Clone the repository
 ```bash
 git clone https://github.com/nxfive/ml-bank-anomaly-detection.git
@@ -148,7 +215,7 @@ docker-compose -f docker-compose.yml up --build
 ```
 
 
-## Screenshots
+## 📸 Screenshots
 
 ### Dashboard
 ![App UI](docs/screenshot-models.png)
