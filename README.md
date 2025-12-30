@@ -228,5 +228,9 @@ docker-compose -f docker-compose.yml up --build
 ![Kibana Logs](docs/screenshot-kibana.png)
 ### Logrotate
 ![Logrotate](docs/screenshot-logrotate.png)
+### Alert Manager - Firing
+![Alert Manager](docs/screenshot-alert-firing.png)
+### Alert Manager - Resolved
+![Alert Manager](docs/screenshot-alert-resolved.png)
 ### Test Coverage
 ![Test Coverage](docs/screenshot-tests-coverage.png)
